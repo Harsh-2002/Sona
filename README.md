@@ -144,13 +144,14 @@ Override with `--output` flag.
 
 ## 🔧 Configuration
 
-The tool creates a config file at `~/.sona/config.yaml`:
+The tool creates a config file at `~/.sona/config.toml`:
 
-```yaml
-assemblyai:
-  api_key: "your_api_key_here"
-output:
-  default_path: "/home/user/transcripts"
+```toml
+[assemblyai]
+api_key = "your_api_key_here"
+
+[output]
+default_path = "/home/user/transcripts"
 ```
 
 ## 🐛 Troubleshooting

@@ -1,0 +1,307 @@
+name: Build and Release
+
+# on:
+#   push:
+#     tags:
+#       - 'v*'
+#   workflow_dispatch:
+#     inputs:
+#       version:
+#         description: 'Version to release (e.g., v1.0.0)'
+#         required: true
+#         default: 'v1.0.0'
+
+jobs:
+  build:
+    name: Build for ${{ matrix.os }}-${{ matrix.arch }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          # Linux
+          - os: linux
+            arch: amd64
+            binary_name: sona-linux-amd64
+          - os: linux
+            arch: arm64
+            binary_name: sona-linux-arm64
+          - os: linux
+            arch: arm
+            binary_name: sona-linux-arm
+          # macOS
+          - os: darwin
+            arch: amd64
+            binary_name: sona-darwin-amd64
+          - os: darwin
+            arch: arm64
+            binary_name: sona-darwin-arm64
+          # Windows
+          - os: windows
+            arch: amd64
+            binary_name: sona-windows-amd64.exe
+          - os: windows
+            arch: arm64
+            binary_name: sona-windows-arm64.exe
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+
+      - name: Cache Go modules
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Install dependencies
+        run: go mod tidy
+
+      - name: Build binary
+        env:
+          GOOS: ${{ matrix.os }}
+          GOARCH: ${{ matrix.arch }}
+          CGO_ENABLED: 0
+        run: |
+          go build -ldflags="-s -w" \
+            -o "build/${{ matrix.binary_name }}" \
+            cmd/sona/main.go
+
+      - name: Create checksum
+        run: |
+          cd build
+          sha256sum "${{ matrix.binary_name }}" > "${{ matrix.binary_name }}.sha256"
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.binary_name }}
+          path: |
+            build/${{ matrix.binary_name }}
+            build/${{ matrix.binary_name }}.sha256
+
+  release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/') || github.event.inputs.version
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Determine version
+        id: version
+        run: |
+          if [ "${{ github.event.inputs.version }}" != "" ]; then
+            echo "VERSION=${{ github.event_inputs.version }}" >> $GITHUB_OUTPUT
+          else
+            echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: artifacts
+
+      - name: Prepare release assets
+        run: |
+          mkdir -p release-assets
+          
+          # Copy binaries and checksums
+          for artifact in artifacts/*/; do
+            if [ -d "$artifact" ]; then
+              cp "$artifact"/* release-assets/
+            fi
+          done
+          
+          # Create a simple install script for Linux/macOS
+          cat > release-assets/install.sh << 'EOF'
+          #!/bin/bash
+          # Simple install script for Sona CLI
+          
+          set -e
+          
+          # Detect OS and architecture
+          OS=$(uname -s | tr '[:upper:]' '[:lower:]')
+          ARCH=$(uname -m)
+          
+          # Map architecture names
+          case $ARCH in
+            x86_64) ARCH="amd64" ;;
+            aarch64) ARCH="arm64" ;;
+            armv7l) ARCH="arm" ;;
+          esac
+          
+          # Determine binary name
+          if [ "$OS" = "darwin" ]; then
+            OS="darwin"
+          elif [ "$OS" = "linux" ]; then
+            OS="linux"
+          else
+            echo "Unsupported OS: $OS"
+            exit 1
+          fi
+          
+          BINARY="sona-$OS-$ARCH"
+          
+          # Check if binary exists
+          if [ ! -f "$BINARY" ]; then
+            echo "Binary not found: $BINARY"
+            echo "Available binaries:"
+            ls -la *.exe 2>/dev/null || ls -la sona-* 2>/dev/null
+            exit 1
+          fi
+          
+          # Install binary
+          echo "Installing Sona CLI..."
+          chmod +x "$BINARY"
+          
+          if [ "$OS" = "darwin" ]; then
+            sudo cp "$BINARY" /usr/local/bin/sona
+          else
+            sudo cp "$BINARY" /usr/local/bin/sona
+          fi
+          
+          echo "✅ Sona CLI installed successfully!"
+          echo "Run 'sona --help' to get started"
+          EOF
+          
+          chmod +x release-assets/install.sh
+          
+          # Create Windows install script
+          cat > release-assets/install.bat << 'EOF'
+          @echo off
+          REM Simple install script for Sona CLI on Windows
+          
+          echo Installing Sona CLI...
+          
+          REM Check if binary exists
+          if not exist "sona-windows-amd64.exe" (
+            echo Binary not found: sona-windows-amd64.exe
+            echo Available binaries:
+            dir *.exe
+            pause
+            exit /b 1
+          )
+          
+          REM Copy to a directory in PATH
+          copy "sona-windows-amd64.exe" "%USERPROFILE%\AppData\Local\Microsoft\WinGet\Packages\sona.exe"
+          
+          echo ✅ Sona CLI installed successfully!
+          echo Run 'sona --help' to get started
+          pause
+          EOF
+          
+          # Create README for release
+          cat > release-assets/README.md << EOF
+          # Sona CLI v${{ steps.version.outputs.VERSION }}
+          
+          ## Installation
+          
+          ### Linux/macOS
+          \`\`\`bash
+          chmod +x install.sh
+          ./install.sh
+          \`\`\`
+          
+          ### Windows
+          \`\`\`cmd
+          install.bat
+          \`\`\`
+          
+          ### Manual Installation
+          1. Download the binary for your platform
+          2. Make it executable: \`chmod +x <binary>\`
+          3. Move to PATH: \`sudo mv <binary> /usr/local/bin/sona\`
+          
+          ## Configuration
+          The tool creates a config file at \`~/.sona/config.toml\`:
+          
+          \`\`\`toml
+          [assemblyai]
+          api_key = "your_api_key_here"
+          
+          [output]
+          default_path = "/home/user/transcripts"
+          \`\`\`
+          
+          ## Usage
+          \`\`\`bash
+          # Set API key
+          export ASSEMBLYAI_API_KEY="your_api_key_here"
+          
+          # Or use config command
+          sona config set api_key "your_api_key_here"
+          
+          # Transcribe YouTube video
+          sona transcribe "https://youtube.com/watch?v=..."
+          
+          # Transcribe local file
+          sona transcribe "./audio.mp3"
+          
+          # Get help
+          sona --help
+          \`\`\`
+          
+          ## Supported Platforms
+          - Linux (amd64, arm64, arm)
+          - macOS (amd64, arm64)
+          - Windows (amd64, arm64)
+          
+          ## Security
+          API keys are automatically encrypted using AES-256-GCM encryption
+          with a system-derived master key for enhanced security.
+          
+          ## Checksums
+          Each binary includes a SHA256 checksum for verification.
+          EOF
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.version.outputs.VERSION }}
+          name: Sona CLI ${{ steps.version.outputs.VERSION }}
+          body: |
+            ## 🎉 New Release: Sona CLI ${{ steps.version.outputs.VERSION }}
+            
+            ### ✨ What's New
+            - Multi-platform support (Linux, macOS, Windows)
+            - ARM64 and ARM support
+            - Pure Go implementation (no external dependencies)
+            - AssemblyAI integration for transcription
+            
+            ### 🚀 Quick Start
+            ```bash
+            # Set API key
+            export ASSEMBLYAI_API_KEY="your_api_key_here"
+            
+            # Transcribe YouTube video
+            sona transcribe "https://youtube.com/watch?v=..."
+            ```
+            
+            ### 📦 Downloads
+            Choose the binary for your platform and architecture.
+            
+            ### 🔍 Verification
+            Each binary includes SHA256 checksums for verification.
+            
+            ### 📚 Documentation
+            - [Basic Usage](https://github.com/${{ github.repository }}/blob/main/examples/basic_usage.md)
+            - [Architecture](https://github.com/${{ github.repository }}/blob/main/docs/ARCHITECTURE.md)
+            
+            ### 🐛 Issues
+            Found a bug? [Report it here](https://github.com/${{ github.repository }}/issues)
+          files: release-assets/*
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

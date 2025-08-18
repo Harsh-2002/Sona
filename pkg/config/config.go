@@ -9,6 +9,9 @@ import (
 	"github.com/spf13/viper"
 )
 
+var encryptionManager *EncryptionManager
+var configFilePath string
+
 var ConfigCmd = &cobra.Command{
 	Use:   "config",
 	Short: "Manage configuration settings",
@@ -26,12 +29,34 @@ var configSetCmd = &cobra.Command{
 
 		switch key {
 		case "api_key":
-			viper.Set("assemblyai.api_key", value)
-			if err := viper.WriteConfig(); err != nil {
+			// Encrypt the API key if encryption is available
+			if encryptionManager != nil {
+				encryptedValue, err := encryptionManager.Encrypt(value)
+				if err != nil {
+					fmt.Printf("Warning: Could not encrypt API key: %v\n", err)
+					fmt.Printf("API key will be stored in plain text\n")
+					viper.Set("assemblyai.api_key", value)
+				} else {
+					viper.Set("assemblyai.api_key", encryptedValue)
+					fmt.Printf("🔒 API key encrypted and saved successfully!\n")
+				}
+			} else {
+				viper.Set("assemblyai.api_key", value)
+				fmt.Printf("⚠️  API key saved in plain text (encryption not available)\n")
+			}
+			
+			// Persist config: always write to ~/.sona/config.toml
+			var err error
+			if _, statErr := os.Stat(configFilePath); os.IsNotExist(statErr) {
+				err = viper.WriteConfigAs(configFilePath)
+			} else {
+				err = viper.WriteConfig()
+			}
+			
+			if err != nil {
 				fmt.Printf("Error saving config: %v\n", err)
 				return
 			}
-			fmt.Printf("API key saved successfully!\n")
 		default:
 			fmt.Printf("Unknown config key: %s\n", key)
 		}
@@ -55,6 +80,14 @@ func init() {
 
 // InitConfig initializes the configuration system
 func InitConfig() {
+	// Initialize encryption manager
+	var err error
+	encryptionManager, err = NewEncryptionManager()
+	if err != nil {
+		fmt.Printf("Warning: Could not initialize encryption: %v\n", err)
+		fmt.Printf("API keys will be stored in plain text\n")
+	}
+
 	// Set default config file path
 	home, err := os.UserHomeDir()
 	if err != nil {
@@ -68,19 +101,25 @@ func InitConfig() {
 		return
 	}
 
-	viper.SetConfigName("config")
-	viper.SetConfigType("yaml")
-	viper.AddConfigPath(configDir)
-	viper.AddConfigPath(".")
+	configFilePath = filepath.Join(configDir, "config.toml")
+	viper.SetConfigFile(configFilePath)
+	viper.SetConfigType("toml")
 
 	// Set defaults
 	viper.SetDefault("assemblyai.api_key", "")
 	viper.SetDefault("output.default_path", filepath.Join(home, "transcripts"))
 
-	// Read config file
+	// Read config file (if exists)
 	if err := viper.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
 			fmt.Printf("Error reading config file: %v\n", err)
+		}
+	}
+
+	// Write default config if it doesn't exist
+	if _, err := os.Stat(configFilePath); os.IsNotExist(err) {
+		if err := viper.WriteConfigAs(configFilePath); err != nil {
+			fmt.Printf("Warning: Could not write default config file: %v\n", err)
 		}
 	}
 
@@ -107,6 +146,18 @@ func GetAPIKey() string {
 		fmt.Println("2. Use config command: sona config set api_key 'your_key_here'")
 		os.Exit(1)
 	}
+
+	// Decrypt the API key if it's encrypted
+	if encryptionManager != nil && encryptionManager.IsEncrypted(apiKey) {
+		decryptedKey, err := encryptionManager.Decrypt(apiKey)
+		if err != nil {
+			fmt.Printf("Error: Failed to decrypt API key: %v\n", err)
+			fmt.Println("Please reset your API key using: sona config set api_key 'your_key_here'")
+			os.Exit(1)
+		}
+		return decryptedKey
+	}
+
 	return apiKey
 }
 
