@@ -1,88 +1,147 @@
 package youtube
 
 import (
+	"context"
 	"fmt"
-	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
-
-	yt "github.com/kkdai/youtube/v2"
+	"time"
 )
 
-// DownloadAudio downloads audio from a YouTube URL using pure Go
-// This makes the tool completely independent with no external dependencies
+// DownloadAudio downloads audio from a YouTube URL using yt-dlp
 func DownloadAudio(url string, outputDir string) (string, error) {
-	fmt.Println("📥 Downloading audio from YouTube using pure Go...")
+	fmt.Println("📥 Downloading audio from YouTube...")
 
-	// Create a new YouTube client
-	client := yt.Client{}
-
-	// Get video info
-	video, err := client.GetVideo(url)
+	// Check if yt-dlp is installed
+	ytdlpPath, err := exec.LookPath("yt-dlp")
 	if err != nil {
-		return "", fmt.Errorf("failed to get video info: %v", err)
-	}
-
-	fmt.Printf("🎬 Video: %s\n", video.Title)
-	fmt.Printf("⏱️  Duration: %s\n", video.Duration)
-
-	// Find the best audio format
-	var audioFormat *yt.Format
-	for _, format := range video.Formats {
-		// Look for audio-only formats or formats with audio
-		if format.AudioQuality != "" {
-			if audioFormat == nil {
-				audioFormat = &format
-			} else if format.AudioQuality == "AUDIO_QUALITY_MEDIUM" || format.AudioQuality == "AUDIO_QUALITY_HIGH" {
-				// Prefer higher quality audio
-				audioFormat = &format
-			}
+		// Try to install yt-dlp
+		fmt.Println("🔧 yt-dlp not found, attempting to install...")
+		if err := installYtDlp(); err != nil {
+			return "", fmt.Errorf("failed to install yt-dlp: %v", err)
+		}
+		
+		// Check again
+		ytdlpPath, err = exec.LookPath("yt-dlp")
+		if err != nil {
+			return "", fmt.Errorf("yt-dlp not found after installation attempt: %v", err)
 		}
 	}
-
-	if audioFormat == nil {
-		// Fallback: look for any format with audio
-		for _, format := range video.Formats {
-			if format.AudioQuality != "" {
-				audioFormat = &format
-				break
-			}
-		}
-	}
-
-	if audioFormat == nil {
-		return "", fmt.Errorf("no audio format found for this video")
-	}
-
-	fmt.Printf("🎵 Audio format: %s\n", audioFormat.AudioQuality)
-
-	// Generate output filename
-	outputFile := filepath.Join(outputDir, "audio.mp4")
 	
-	// Create output file
-	file, err := os.Create(outputFile)
-	if err != nil {
-		return "", fmt.Errorf("failed to create output file: %v", err)
-	}
-	defer file.Close()
+	fmt.Printf("✅ Using yt-dlp: %s\n", ytdlpPath)
 
-	// Download the audio stream
+	// Create output filename
+	outputFile := filepath.Join(outputDir, "audio.mp3")
+	
+	// Get video info first
+	title, duration, err := getVideoInfo(url)
+	if err != nil {
+		fmt.Printf("⚠️ Warning: Could not get video info: %v\n", err)
+		title = "Unknown"
+		duration = "Unknown"
+	} else {
+		fmt.Printf("🎬 Video: %s\n", title)
+		fmt.Printf("⏱️  Duration: %s\n", duration)
+	}
+
+	// Create context with timeout
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	defer cancel()
+
+	// Download the audio using yt-dlp
 	fmt.Println("⬇️  Downloading audio stream...")
-	stream, _, err := client.GetStream(video, audioFormat)
-	if err != nil {
-		return "", fmt.Errorf("failed to get audio stream: %v", err)
+	
+	// Prepare command
+	cmd := exec.CommandContext(ctx, ytdlpPath,
+		"--extract-audio",
+		"--audio-format", "mp3",
+		"--audio-quality", "0",
+		"--output", outputFile,
+		"--no-playlist",
+		"--progress",
+		url,
+	)
+	
+	// Set output to display progress
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	
+	// Run the command
+	if err := cmd.Run(); err != nil {
+		return "", fmt.Errorf("failed to download audio: %v", err)
 	}
-	defer stream.Close()
 
-	// Copy the stream to the file
-	_, err = io.Copy(file, stream)
-	if err != nil {
-		return "", fmt.Errorf("failed to save audio stream: %v", err)
+	// Verify file exists
+	if _, err := os.Stat(outputFile); err != nil {
+		return "", fmt.Errorf("failed to find downloaded file: %v", err)
 	}
 
-	fmt.Println("✅ Audio download completed successfully!")
+	// Get file size
+	fileInfo, err := os.Stat(outputFile)
+	if err != nil {
+		return "", fmt.Errorf("failed to get file info: %v", err)
+	}
+
+	fmt.Printf("✅ Audio download completed successfully! (%.2f MB)\n", float64(fileInfo.Size())/1024/1024)
+	
 	return outputFile, nil
+}
+
+// installYtDlp attempts to install yt-dlp
+func installYtDlp() error {
+	// Try using pip first
+	fmt.Println("📦 Attempting to install yt-dlp using pip...")
+	cmd := exec.Command("pip", "install", "--user", "yt-dlp")
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	
+	if err := cmd.Run(); err == nil {
+		return nil
+	}
+	
+	// Try using pip3
+	fmt.Println("📦 Attempting to install yt-dlp using pip3...")
+	cmd = exec.Command("pip3", "install", "--user", "yt-dlp")
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	
+	if err := cmd.Run(); err == nil {
+		return nil
+	}
+	
+	// Try using curl to download directly
+	fmt.Println("📦 Attempting to download yt-dlp binary...")
+	
+	// Create a temporary file
+	tempFile, err := os.CreateTemp("", "yt-dlp-*")
+	if err != nil {
+		return fmt.Errorf("failed to create temp file: %v", err)
+	}
+	tempFile.Close()
+	
+	// Download the binary
+	cmd = exec.Command("curl", "-L", "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp", "-o", tempFile.Name())
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("failed to download yt-dlp: %v", err)
+	}
+	
+	// Make it executable
+	if err := os.Chmod(tempFile.Name(), 0755); err != nil {
+		return fmt.Errorf("failed to make yt-dlp executable: %v", err)
+	}
+	
+	// Move it to /usr/local/bin
+	if err := os.Rename(tempFile.Name(), "/usr/local/bin/yt-dlp"); err != nil {
+		return fmt.Errorf("failed to move yt-dlp to /usr/local/bin: %v", err)
+	}
+	
+	fmt.Println("✅ yt-dlp installed successfully!")
+	return nil
 }
 
 // IsYouTubeURL checks if the given string is a YouTube URL
@@ -90,8 +149,45 @@ func IsYouTubeURL(url string) bool {
 	return strings.Contains(url, "youtube.com") || strings.Contains(url, "youtu.be")
 }
 
-// GetVideoInfo gets basic information about a YouTube video
-func GetVideoInfo(url string) (*yt.Video, error) {
-	client := yt.Client{}
-	return client.GetVideo(url)
+// getVideoInfo gets basic information about a YouTube video
+func getVideoInfo(url string) (string, string, error) {
+	// Create context with timeout
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	
+	// Check if yt-dlp is installed
+	ytdlpPath, err := exec.LookPath("yt-dlp")
+	if err != nil {
+		return "", "", fmt.Errorf("yt-dlp not found: %v", err)
+	}
+	
+	// Get video info using yt-dlp
+	cmd := exec.CommandContext(ctx, ytdlpPath,
+		"--print", "title",
+		"--print", "duration",
+		"--no-playlist",
+		"--no-download",
+		url,
+	)
+	
+	output, err := cmd.Output()
+	if err != nil {
+		return "", "", fmt.Errorf("failed to get video info: %v", err)
+	}
+	
+	// Parse output (title and duration are on separate lines)
+	lines := strings.Split(strings.TrimSpace(string(output)), "\n")
+	if len(lines) < 2 {
+		return "", "", fmt.Errorf("unexpected output format from yt-dlp")
+	}
+	
+	title := lines[0]
+	duration := lines[1]
+	
+	return title, duration, nil
+}
+
+// GetVideoInfo gets basic information about a YouTube video (public API)
+func GetVideoInfo(url string) (string, string, error) {
+	return getVideoInfo(url)
 }
