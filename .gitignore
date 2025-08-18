@@ -1,0 +1,38 @@
+# Build artifacts
+/build/
+/sona
+*.sha256
+
+# Go specific
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+*.cover
+*.coverprofile
+coverage*
+
+# Logs
+*.log
+
+# Env & local config
+.env
+.env.*
+
+# IDE/editor settings
+.idea/
+.vscode/
+.history/
+.fleet/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Misc
+*.tmp
+*.swp
+*.swo
