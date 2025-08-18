@@ -47,7 +47,7 @@ func NewClient(apiKey string) *Client {
 
 // TranscribeAudio transcribes an audio file using AssemblyAI
 func (c *Client) TranscribeAudio(audioPath string, speechModel string) (string, error) {
-	fmt.Println("🔊 Starting transcription with AssemblyAI...")
+	fmt.Println("Starting transcription...")
 
 	// First, upload the audio file
 	uploadURL, err := c.uploadAudioFile(audioPath)
@@ -55,15 +55,13 @@ func (c *Client) TranscribeAudio(audioPath string, speechModel string) (string, 
 		return "", fmt.Errorf("failed to upload audio file: %v", err)
 	}
 
-	fmt.Println("📤 Audio file uploaded successfully")
-
 	// Submit transcription request
 	transcriptID, err := c.submitTranscription(uploadURL, speechModel)
 	if err != nil {
 		return "", fmt.Errorf("failed to submit transcription: %v", err)
 	}
 
-	fmt.Println("📝 Transcription submitted, waiting for completion...")
+	fmt.Println("Processing audio...")
 
 	// Poll for completion
 	transcript, err := c.pollTranscription(transcriptID)
@@ -75,7 +73,6 @@ func (c *Client) TranscribeAudio(audioPath string, speechModel string) (string, 
 		return "", fmt.Errorf("transcription failed: %s", transcript.Error)
 	}
 
-	fmt.Println("✅ Transcription completed successfully!")
 	return transcript.Text, nil
 }
 
@@ -207,11 +204,10 @@ func (c *Client) pollTranscription(transcriptID string) (*TranscriptResult, erro
 			return &result, nil
 		case "error":
 			return &result, nil
-		case "queued", "processing":
-			fmt.Printf("⏳ Status: %s, waiting...\n", result.Status)
+		case "queued", "processing", "":
+			// Just wait silently
 			time.Sleep(3 * time.Second)
 		default:
-			fmt.Printf("⏳ Unknown status: %s, waiting...\n", result.Status)
 			time.Sleep(3 * time.Second)
 		}
 	}

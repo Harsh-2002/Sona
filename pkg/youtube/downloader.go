@@ -12,13 +12,13 @@ import (
 
 // DownloadAudio downloads audio from a YouTube URL using yt-dlp
 func DownloadAudio(url string, outputDir string) (string, error) {
-	fmt.Println("📥 Downloading audio from YouTube...")
+	fmt.Println("Downloading audio from YouTube...")
 
 	// Check if yt-dlp is installed
 	ytdlpPath, err := exec.LookPath("yt-dlp")
 	if err != nil {
 		// Try to install yt-dlp
-		fmt.Println("🔧 yt-dlp not found, attempting to install...")
+		fmt.Println("yt-dlp not found, attempting to install...")
 		if err := installYtDlp(); err != nil {
 			return "", fmt.Errorf("failed to install yt-dlp: %v", err)
 		}
@@ -30,7 +30,7 @@ func DownloadAudio(url string, outputDir string) (string, error) {
 		}
 	}
 	
-	fmt.Printf("✅ Using yt-dlp: %s\n", ytdlpPath)
+	fmt.Printf("Using yt-dlp: %s\n", ytdlpPath)
 
 	// Create output filename
 	outputFile := filepath.Join(outputDir, "audio.mp3")
@@ -38,12 +38,12 @@ func DownloadAudio(url string, outputDir string) (string, error) {
 	// Get video info first
 	title, duration, err := getVideoInfo(url)
 	if err != nil {
-		fmt.Printf("⚠️ Warning: Could not get video info: %v\n", err)
+		fmt.Printf("Warning: Could not get video info: %v\n", err)
 		title = "Unknown"
 		duration = "Unknown"
 	} else {
-		fmt.Printf("🎬 Video: %s\n", title)
-		fmt.Printf("⏱️  Duration: %s\n", duration)
+		fmt.Printf("Video: %s\n", title)
+		fmt.Printf("Duration: %s\n", duration)
 	}
 
 	// Create context with timeout
@@ -51,7 +51,7 @@ func DownloadAudio(url string, outputDir string) (string, error) {
 	defer cancel()
 
 	// Download the audio using yt-dlp
-	fmt.Println("⬇️  Downloading audio stream...")
+	fmt.Println("Downloading audio stream...")
 	
 	// Prepare command
 	cmd := exec.CommandContext(ctx, ytdlpPath,
@@ -61,12 +61,13 @@ func DownloadAudio(url string, outputDir string) (string, error) {
 		"--output", outputFile,
 		"--no-playlist",
 		"--progress",
+		"--quiet",
 		url,
 	)
 	
-	// Set output to display progress
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
+	// Redirect output to null to hide technical details
+	cmd.Stdout = nil
+	cmd.Stderr = nil
 	
 	// Run the command
 	if err := cmd.Run(); err != nil {
@@ -84,7 +85,7 @@ func DownloadAudio(url string, outputDir string) (string, error) {
 		return "", fmt.Errorf("failed to get file info: %v", err)
 	}
 
-	fmt.Printf("✅ Audio download completed successfully! (%.2f MB)\n", float64(fileInfo.Size())/1024/1024)
+	fmt.Printf("Audio download completed successfully (%.2f MB)\n", float64(fileInfo.Size())/1024/1024)
 	
 	return outputFile, nil
 }
@@ -92,7 +93,7 @@ func DownloadAudio(url string, outputDir string) (string, error) {
 // installYtDlp attempts to install yt-dlp
 func installYtDlp() error {
 	// Try using pip first
-	fmt.Println("📦 Attempting to install yt-dlp using pip...")
+	fmt.Println("Attempting to install yt-dlp using pip...")
 	cmd := exec.Command("pip", "install", "--user", "yt-dlp")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -102,7 +103,7 @@ func installYtDlp() error {
 	}
 	
 	// Try using pip3
-	fmt.Println("📦 Attempting to install yt-dlp using pip3...")
+	fmt.Println("Attempting to install yt-dlp using pip3...")
 	cmd = exec.Command("pip3", "install", "--user", "yt-dlp")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -112,7 +113,7 @@ func installYtDlp() error {
 	}
 	
 	// Try using curl to download directly
-	fmt.Println("📦 Attempting to download yt-dlp binary...")
+	fmt.Println("Attempting to download yt-dlp binary...")
 	
 	// Create a temporary file
 	tempFile, err := os.CreateTemp("", "yt-dlp-*")
@@ -135,12 +136,35 @@ func installYtDlp() error {
 		return fmt.Errorf("failed to make yt-dlp executable: %v", err)
 	}
 	
-	// Move it to /usr/local/bin
-	if err := os.Rename(tempFile.Name(), "/usr/local/bin/yt-dlp"); err != nil {
-		return fmt.Errorf("failed to move yt-dlp to /usr/local/bin: %v", err)
+	// Try to move it to a location in PATH
+	// First try user's home bin directory
+	homeDir, err := os.UserHomeDir()
+	if err == nil {
+		userBin := filepath.Join(homeDir, "bin")
+		// Create bin directory if it doesn't exist
+		if _, err := os.Stat(userBin); os.IsNotExist(err) {
+			os.MkdirAll(userBin, 0755)
+		}
+		
+		// Try to move to user's bin directory
+		if err := os.Rename(tempFile.Name(), filepath.Join(userBin, "yt-dlp")); err == nil {
+			// Add to PATH if not already there
+			os.Setenv("PATH", os.Getenv("PATH")+":"+userBin)
+			return nil
+		}
 	}
 	
-	fmt.Println("✅ yt-dlp installed successfully!")
+	// If user bin fails, try /usr/local/bin if we have permission
+	if err := os.Rename(tempFile.Name(), "/usr/local/bin/yt-dlp"); err != nil {
+		// If that fails too, keep it in the temp location and add to PATH
+		os.Chmod(tempFile.Name(), 0755)
+		newPath := filepath.Dir(tempFile.Name())
+		os.Setenv("PATH", os.Getenv("PATH")+":"+newPath)
+		fmt.Printf("Installed yt-dlp to: %s\n", tempFile.Name())
+		return nil
+	}
+	
+	fmt.Println("yt-dlp installed successfully")
 	return nil
 }
 

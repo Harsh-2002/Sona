@@ -4,12 +4,13 @@ A powerful, **completely independent** CLI tool that converts audio files and Yo
 
 ## ✨ Features
 
-- 🎵 **Local Audio Files** - Transcribe any supported audio format
-- 🎥 **YouTube Videos** - Download and transcribe using pure Go (no external tools)
-- 🤖 **Advanced AI** - Uses AssemblyAI's latest speech models
-- ⚙️ **Smart Configuration** - API keys via environment or config commands
-- 📁 **Flexible Output** - Auto-generate filenames or specify custom paths
-- 🔒 **100% Independent** - Single binary, no external dependencies
+- **Local Audio Files** - Transcribe any supported audio format
+- **YouTube Videos** - Download and transcribe YouTube videos
+- **Advanced AI** - Uses AssemblyAI's latest speech models
+- **Smart Configuration** - API keys via environment or config commands
+- **Flexible Output** - Auto-generate filenames or specify custom paths
+- **Secure Storage** - API keys are stored with encryption
+- **Interactive Mode** - Guided experience with step-by-step prompts and remembered settings
 
 ## 🚀 Quick Start
 
@@ -41,7 +42,8 @@ export ASSEMBLYAI_API_KEY="your_api_key_here"
 ## 📋 Requirements
 
 - **AssemblyAI API Key** - [Get one here](https://www.assemblyai.com/)
-- **No external tools needed** - Everything is included in the binary
+- **yt-dlp** - For YouTube downloads (auto-installed if not found)
+- **FFmpeg** - For audio format conversion (auto-installed if not found)
 
 ## 🏗️ Project Structure
 
@@ -67,7 +69,7 @@ sona-ai/
 - **`pkg/assemblyai/`** - HTTP client for AssemblyAI REST API
 - **`pkg/config/`** - Configuration management with Viper
 - **`pkg/transcriber/`** - Orchestrates the transcription process
-- **`pkg/youtube/`** - Pure Go YouTube audio download using kkdai/youtube/v2
+- **`pkg/youtube/`** - YouTube audio download using yt-dlp
 
 ## 🛠️ Building from Source
 
@@ -95,6 +97,9 @@ go build -o build/sona cmd/sona/main.go
 ### Basic Commands
 
 ```bash
+# Interactive mode (default when no arguments provided)
+sona
+
 # Show help
 sona --help
 
@@ -137,8 +142,11 @@ sona config set api_key "your_key_here"
 ## 📁 Output
 
 By default, transcripts are saved to:
-- **YouTube**: `~/transcripts/youtube_[VIDEO_ID].txt`
-- **Local files**: `~/transcripts/[FILENAME]_transcript.txt`
+- `~/sona/[title]-[date].txt`
+
+Where:
+- `title` is a simplified version of the YouTube video title or local file name
+- `date` is the current date (format: YYYYMMDD)
 
 Override with `--output` flag.
 
@@ -148,11 +156,20 @@ The tool creates a config file at `~/.sona/config.toml`:
 
 ```toml
 [assemblyai]
-api_key = "your_api_key_here"
+api_key = "encrypted_api_key_here"
 
 [output]
-default_path = "/home/user/transcripts"
+default_path = "/home/user/sona"
+
+[last_session]
+source_type = "youtube"
+speech_model = "nano"
+output_path = "/custom/path/transcript.txt"
 ```
+
+## 🔒 Security
+
+API keys are automatically encrypted using AES-256-GCM encryption with a system-derived master key. This ensures your API keys are securely stored and can only be decrypted on the same system they were encrypted on.
 
 ## 🐛 Troubleshooting
 
@@ -169,7 +186,12 @@ sona config set api_key "your_key_here"
 **YouTube Download Fails**
 - Check internet connection
 - Video may be private/restricted
-- Tool automatically handles YouTube's current systems
+- Ensure yt-dlp is installed or can be auto-installed
+
+**Audio Format Issues**
+- The tool will attempt to convert audio to MP3 format using FFmpeg
+- If conversion fails, try converting the file manually to MP3 format
+- Some DRM-protected or specialized formats may not be convertible
 
 **Transcription Fails**
 - Verify API key is correct
@@ -220,7 +242,7 @@ This project is licensed under the MIT License.
 ## 🙏 Acknowledgments
 
 - [AssemblyAI](https://www.assemblyai.com/) - Speech recognition API
-- [kkdai/youtube/v2](https://github.com/kkdai/youtube/v2) - Pure Go YouTube library
+- [yt-dlp](https://github.com/yt-dlp/yt-dlp) - YouTube download tool
 - [Cobra](https://github.com/spf13/cobra) - CLI framework
 - [Viper](https://github.com/spf13/viper) - Configuration management
 

@@ -3,7 +3,9 @@ package transcriber
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 
@@ -35,28 +37,28 @@ Examples:
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		source := args[0]
-		fmt.Printf("🎯 Source: %s\n", source)
+		fmt.Printf("Source: %s\n", source)
 		
 		// Get API key
 		apiKey := config.GetAPIKey()
-		fmt.Println("🔑 API key retrieved successfully")
+		fmt.Println("API key retrieved successfully")
 		
 		// Determine source type and process
 		if youtube.IsYouTubeURL(source) {
-			fmt.Println("🎥 Processing YouTube URL...")
+			fmt.Println("Processing YouTube URL...")
 			if err := processYouTubeVideo(source, apiKey); err != nil {
-				fmt.Printf("❌ YouTube processing failed: %v\n", err)
+				fmt.Printf("Error: YouTube processing failed: %v\n", err)
 				os.Exit(1)
 			}
 		} else {
-			fmt.Println("🎵 Processing local audio file...")
+			fmt.Println("Processing local audio file...")
 			if err := processLocalAudio(source, apiKey); err != nil {
-				fmt.Printf("❌ Local audio processing failed: %v\n", err)
+				fmt.Printf("Error: Local audio processing failed: %v\n", err)
 				os.Exit(1)
 			}
 		}
 		
-		fmt.Println("🎉 Transcription completed successfully!")
+		fmt.Println("Transcription completed successfully")
 	},
 }
 
@@ -66,15 +68,10 @@ func init() {
 }
 
 func processYouTubeVideo(url string, apiKey string) error {
-	fmt.Println("🔍 Getting video information...")
-	
 	// Get video info first
-	title, duration, err := youtube.GetVideoInfo(url)
-	if err != nil {
-		fmt.Printf("⚠️ Warning: Could not get video info: %v\n", err)
-	} else {
-		fmt.Printf("🎬 Video: %s\n", title)
-		fmt.Printf("⏱️  Duration: %s\n", duration)
+	title, _, err := youtube.GetVideoInfo(url)
+	if err == nil {
+		fmt.Printf("Processing: %s\n", title)
 	}
 
 	// Create temporary directory for downloads
@@ -85,31 +82,20 @@ func processYouTubeVideo(url string, apiKey string) error {
 	defer os.RemoveAll(tempDir)
 
 	// Download audio from YouTube
-	fmt.Println("📥 Starting YouTube audio download...")
-	startTime := time.Now()
+	fmt.Println("Downloading from YouTube...")
 	
 	audioPath, err := youtube.DownloadAudio(url, tempDir)
 	if err != nil {
-		return fmt.Errorf("failed to download YouTube audio: %v", err)
+		return fmt.Errorf("download failed: %v", err)
 	}
-
-	downloadDuration := time.Since(startTime).Round(time.Second)
-	fmt.Printf("✅ Downloaded audio to: %s (took %s)\n", audioPath, downloadDuration)
 
 	// Transcribe the audio
-	fmt.Println("🔊 Starting audio transcription with AssemblyAI...")
-	startTime = time.Now()
-	
 	transcript, err := transcribeAudio(audioPath, apiKey)
 	if err != nil {
-		return fmt.Errorf("failed to transcribe audio: %v", err)
+		return fmt.Errorf("transcription failed: %v", err)
 	}
 
-	transcribeDuration := time.Since(startTime).Round(time.Second)
-	fmt.Printf("✅ Transcription completed (took %s)\n", transcribeDuration)
-
 	// Save transcript
-	fmt.Println("💾 Saving transcript...")
 	if err := saveTranscript(transcript, url, "youtube"); err != nil {
 		return fmt.Errorf("failed to save transcript: %v", err)
 	}
@@ -119,29 +105,34 @@ func processYouTubeVideo(url string, apiKey string) error {
 
 func processLocalAudio(filePath string, apiKey string) error {
 	// Check if file exists
-	fileInfo, err := os.Stat(filePath)
+	_, err := os.Stat(filePath)
 	if os.IsNotExist(err) {
 		return fmt.Errorf("audio file not found: %s", filePath)
 	}
 	
 	// Show file info
-	fmt.Printf("📄 File: %s\n", filepath.Base(filePath))
-	fmt.Printf("📊 Size: %.2f MB\n", float64(fileInfo.Size())/1024/1024)
+	fmt.Printf("Processing: %s\n", filepath.Base(filePath))
 
-	// Transcribe the audio
-	fmt.Println("🔊 Starting audio transcription with AssemblyAI...")
-	startTime := time.Now()
-	
-	transcript, err := transcribeAudio(filePath, apiKey)
+	// Create temporary directory for conversion
+	tempDir, err := os.MkdirTemp("", "sona-*")
 	if err != nil {
-		return fmt.Errorf("failed to transcribe audio: %v", err)
+		return fmt.Errorf("failed to create temp directory: %v", err)
 	}
-	
-	transcribeDuration := time.Since(startTime).Round(time.Second)
-	fmt.Printf("✅ Transcription completed (took %s)\n", transcribeDuration)
+	defer os.RemoveAll(tempDir)
+
+	// Convert audio to MP3 format for better compatibility
+	convertedPath, err := convertAudioToMP3(filePath, tempDir)
+	if err != nil {
+		return fmt.Errorf("audio conversion failed: %v", err)
+	}
+
+	// Transcribe the converted audio
+	transcript, err := transcribeAudio(convertedPath, apiKey)
+	if err != nil {
+		return fmt.Errorf("transcription failed: %v", err)
+	}
 
 	// Save transcript
-	fmt.Println("💾 Saving transcript...")
 	if err := saveTranscript(transcript, filePath, "local"); err != nil {
 		return fmt.Errorf("failed to save transcript: %v", err)
 	}
@@ -149,16 +140,109 @@ func processLocalAudio(filePath string, apiKey string) error {
 	return nil
 }
 
-func transcribeAudio(audioPath string, apiKey string) (string, error) {
-	fmt.Printf("🔊 Transcribing audio file: %s\n", audioPath)
+// convertAudioToMP3 converts audio file to MP3 format for better compatibility
+func convertAudioToMP3(inputPath string, outputDir string) (string, error) {
+	// Check if ffmpeg is installed
+	ffmpegPath, err := exec.LookPath("ffmpeg")
+	if err != nil {
+		// Try to install ffmpeg
+		fmt.Println("FFmpeg not found, attempting to install...")
+		if err := installFFmpeg(); err != nil {
+			return "", fmt.Errorf("FFmpeg is required for audio conversion. Please install it manually: %v", err)
+		}
+		
+		// Check again
+		ffmpegPath, err = exec.LookPath("ffmpeg")
+		if err != nil {
+			return "", fmt.Errorf("FFmpeg not found after installation attempt: %v", err)
+		}
+	}
+
+	// Create output path
+	outputPath := filepath.Join(outputDir, "converted.mp3")
 	
+	fmt.Println("Converting audio to MP3 format...")
+	
+	// Run ffmpeg to convert the file
+	cmd := exec.Command(ffmpegPath, 
+		"-i", inputPath,
+		"-vn",                // No video
+		"-ar", "44100",       // Sample rate
+		"-ac", "2",           // Stereo
+		"-b:a", "192k",       // Bitrate
+		"-f", "mp3",          // Format
+		"-y",                 // Overwrite output
+		outputPath)
+	
+	// Hide ffmpeg output
+	cmd.Stdout = nil
+	cmd.Stderr = nil
+	
+	if err := cmd.Run(); err != nil {
+		return "", fmt.Errorf("failed to convert audio: %v", err)
+	}
+	
+	// Verify the converted file exists
+	if _, err := os.Stat(outputPath); err != nil {
+		return "", fmt.Errorf("converted file not found: %v", err)
+	}
+	
+	fmt.Println("Audio conversion completed")
+	return outputPath, nil
+}
+
+// installFFmpeg attempts to install FFmpeg
+func installFFmpeg() error {
+	// Detect OS
+	var cmd *exec.Cmd
+	
+	// Try apt-get (Debian/Ubuntu)
+	fmt.Println("Attempting to install FFmpeg using apt-get...")
+	cmd = exec.Command("apt-get", "update")
+	cmd.Run() // Ignore error
+	
+	cmd = exec.Command("apt-get", "install", "-y", "ffmpeg")
+	if err := cmd.Run(); err == nil {
+		return nil
+	}
+	
+	// Try yum (CentOS/RHEL/Fedora)
+	fmt.Println("Attempting to install FFmpeg using yum...")
+	cmd = exec.Command("yum", "install", "-y", "ffmpeg")
+	if err := cmd.Run(); err == nil {
+		return nil
+	}
+	
+	// Try dnf (newer Fedora)
+	fmt.Println("Attempting to install FFmpeg using dnf...")
+	cmd = exec.Command("dnf", "install", "-y", "ffmpeg")
+	if err := cmd.Run(); err == nil {
+		return nil
+	}
+	
+	// Try brew (macOS)
+	fmt.Println("Attempting to install FFmpeg using brew...")
+	cmd = exec.Command("brew", "install", "ffmpeg")
+	if err := cmd.Run(); err == nil {
+		return nil
+	}
+	
+	// Try choco (Windows)
+	fmt.Println("Attempting to install FFmpeg using chocolatey...")
+	cmd = exec.Command("choco", "install", "ffmpeg", "-y")
+	if err := cmd.Run(); err == nil {
+		return nil
+	}
+	
+	return fmt.Errorf("could not install FFmpeg automatically")
+}
+
+func transcribeAudio(audioPath string, apiKey string) (string, error) {
 	// Verify file exists
-	fileInfo, err := os.Stat(audioPath)
+	_, err := os.Stat(audioPath)
 	if err != nil {
 		return "", fmt.Errorf("failed to open audio file: %v", err)
 	}
-	
-	fmt.Printf("📊 Audio file size: %d bytes\n", fileInfo.Size())
 	
 	client := assemblyai.NewClient(apiKey)
 	return client.TranscribeAudio(audioPath, speechModel)
@@ -178,31 +262,46 @@ func saveTranscript(transcript string, source string, sourceType string) error {
 
 		// Generate filename based on source
 		var filename string
+		var title string
+		
 		if sourceType == "youtube" {
-			// Extract video ID from YouTube URL
-			if strings.Contains(source, "v=") {
-				parts := strings.Split(source, "v=")
-				if len(parts) > 1 {
-					videoID := strings.Split(parts[1], "&")[0]
-					filename = fmt.Sprintf("youtube_%s.txt", videoID)
-				}
-			} else if strings.Contains(source, "youtu.be/") {
-				parts := strings.Split(source, "youtu.be/")
-				if len(parts) > 1 {
-					videoID := strings.Split(parts[1], "?")[0]
-					filename = fmt.Sprintf("youtube_%s.txt", videoID)
+			// Get video title from YouTube
+			var err error
+			title, _, err = youtube.GetVideoInfo(source)
+			if err != nil {
+				// Fallback to video ID if title can't be retrieved
+				if strings.Contains(source, "v=") {
+					parts := strings.Split(source, "v=")
+					if len(parts) > 1 {
+						videoID := strings.Split(parts[1], "&")[0]
+						title = videoID
+					}
+				} else if strings.Contains(source, "youtu.be/") {
+					parts := strings.Split(source, "youtu.be/")
+					if len(parts) > 1 {
+						videoID := strings.Split(parts[1], "?")[0]
+						title = videoID
+					}
 				}
 			}
 		} else {
-			// Use original filename with .txt extension
+			// For local files, use the filename without extension
 			baseName := filepath.Base(source)
 			ext := filepath.Ext(baseName)
-			filename = baseName[:len(baseName)-len(ext)] + "_transcript.txt"
+			title = baseName[:len(baseName)-len(ext)]
 		}
-
-		if filename == "" {
-			filename = "transcript.txt"
+		
+		// Sanitize title for use as filename
+		title = sanitizeFilename(title)
+		
+		// If title is empty or couldn't be determined, use a default
+		if title == "" {
+			title = "transcript"
 		}
+		
+		// Add simple timestamp for uniqueness (just date)
+		timestamp := time.Now().Format("20060102")
+		filename = fmt.Sprintf("%s-%s.txt", title, timestamp)
 
 		finalOutputPath = filepath.Join(defaultPath, filename)
 	}
@@ -212,8 +311,63 @@ func saveTranscript(transcript string, source string, sourceType string) error {
 		return fmt.Errorf("failed to write transcript file: %v", err)
 	}
 
-	fmt.Printf("✅ Transcript saved to: %s\n", finalOutputPath)
-	fmt.Printf("📝 Transcript length: %d characters\n", len(transcript))
+	fmt.Printf("Saved to: %s (%d chars)\n", finalOutputPath, len(transcript))
 	
 	return nil
+}
+
+// sanitizeFilename removes invalid characters from a filename and makes it cleaner
+func sanitizeFilename(name string) string {
+	// Replace invalid characters with hyphens
+	reg := regexp.MustCompile(`[\\/:*?"<>|]`)
+	name = reg.ReplaceAllString(name, "-")
+	
+	// Replace spaces and underscores with hyphens
+	name = strings.ReplaceAll(name, " ", "-")
+	name = strings.ReplaceAll(name, "_", "-")
+	
+	// Replace multiple hyphens with a single hyphen
+	for strings.Contains(name, "--") {
+		name = strings.ReplaceAll(name, "--", "-")
+	}
+	
+	// Remove leading/trailing spaces and hyphens
+	name = strings.TrimSpace(name)
+	name = strings.Trim(name, "-")
+	
+	// Convert to lowercase for consistency
+	name = strings.ToLower(name)
+	
+	// Limit length to avoid too long filenames
+	const maxLength = 40
+	if len(name) > maxLength {
+		name = name[:maxLength]
+	}
+	
+	// Ensure name is not empty
+	if name == "" {
+		name = "transcript"
+	}
+	
+	return name
+}
+
+// SetOutputPath sets the output path for the transcript
+func SetOutputPath(path string) {
+	outputPath = path
+}
+
+// SetSpeechModel sets the speech model to use
+func SetSpeechModel(model string) {
+	speechModel = model
+}
+
+// ProcessYouTubeVideo processes a YouTube video URL
+func ProcessYouTubeVideo(url string, apiKey string) error {
+	return processYouTubeVideo(url, apiKey)
+}
+
+// ProcessLocalAudio processes a local audio file
+func ProcessLocalAudio(filePath string, apiKey string) error {
+	return processLocalAudio(filePath, apiKey)
 }
