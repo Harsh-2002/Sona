@@ -14,8 +14,8 @@ echo -e "${GREEN}🚀 Building Sona CLI tool...${NC}"
 
 # Check if Go is installed
 if ! command -v go &> /dev/null; then
-    echo -e "${RED}❌ Go is not installed. Please install Go 1.21 or later.${NC}"
-    exit 1
+	echo -e "${RED}❌ Go is not installed. Please install Go 1.22 or later.${NC}"
+	exit 1
 fi
 
 # Get Go version

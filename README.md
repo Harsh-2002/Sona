@@ -72,7 +72,7 @@ sona-ai/
 ## 🛠️ Building from Source
 
 ### Prerequisites
-- Go 1.21 or later
+- Go 1.22 or later
 
 ### Build Steps
 ```bash
@@ -181,6 +181,29 @@ sona config set api_key "your_key_here"
 - Video files with audio (MP4, AVI, MOV)
 - Max file size: 1GB
 - Min duration: 160ms
+
+## 🚀 Version Management
+
+We use semantic versioning (SemVer) for releases. The project includes a version management script:
+
+```bash
+# Show current version
+./scripts/version.sh show
+
+# Show next version options
+./scripts/version.sh next
+
+# Create new version (automatically triggers GitHub Actions release)
+./scripts/version.sh create patch    # 1.0.0 → 1.0.1
+./scripts/version.sh create minor    # 1.0.0 → 1.1.0
+./scripts/version.sh create major    # 1.0.0 → 2.0.0
+```
+
+### Release Process
+1. **Create version**: `./scripts/version.sh create patch`
+2. **Script automatically**: Creates git tag and pushes to remote
+3. **GitHub Actions**: Automatically builds and releases for all platforms
+4. **Result**: New release with binaries for Linux, macOS, and Windows
 
 ## 🤝 Contributing
 
