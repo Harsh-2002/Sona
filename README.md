@@ -280,12 +280,11 @@ We're planning to add:
 
 ## 🚀 Version Management
 
-Sona automatically manages versions and releases. When we create a new version:
+Sona automatically manages versions and builds. When we create a new version:
 
 1. **Create the version** - `./scripts/release.sh 1.0.0`
 2. **GitHub Actions** - Automatically builds for all platforms
 3. **MinIO Upload** - Binaries uploaded to your S3 bucket
-4. **GitHub Release** - New release with all platform binaries
 
 ### Creating a Release
 
@@ -296,7 +295,7 @@ Sona automatically manages versions and releases. When we create a new version:
 # This will:
 # - Create git tag v1.0.0
 # - Push to GitHub
-# - Trigger automated build and upload
+# - Trigger automated build and MinIO upload
 ```
 
 ## 🤝 Want to Help?

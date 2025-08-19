@@ -29,7 +29,6 @@ Your MinIO secret key
    - macOS (Intel, Apple Silicon)
    - Windows (AMD64, ARM64)
 3. **Upload**: Saves binaries to MinIO bucket `artifact/sona/`
-4. **Release**: Creates GitHub release with all binaries
 
 ## Binary Names
 

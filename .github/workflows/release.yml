@@ -50,7 +50,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v4
         with:
-          go-version: '1.23'
+          go-version: '1.24'
 
       - name: Get version
         id: version
@@ -76,31 +76,24 @@ jobs:
           
           echo "Build completed: ${{ matrix.binary_name }}"
 
-      - name: Setup MinIO Client
+      - name: Create upload directory
         run: |
-          # Install MinIO client
-          wget https://dl.min.io/client/mc/release/linux-amd64/mc
-          chmod +x mc
-          sudo mv mc /usr/local/bin/
+          mkdir -p uploads
 
-      - name: Configure MinIO
+      - name: Copy files to upload directory
         run: |
-          # Configure MinIO client
-          mc alias set sona ${{ env.MINIO_ENDPOINT }} ${{ env.MINIO_ACCESS_KEY }} ${{ env.MINIO_SECRET_KEY }}
-
-      - name: Create folder if not exists
-        run: |
-          # Create sona folder in bucket if it doesn't exist
-          mc ls sona/${{ env.MINIO_BUCKET }}/${{ env.MINIO_FOLDER }}/ || \
-          mc mb sona/${{ env.MINIO_BUCKET }}/${{ env.MINIO_FOLDER }}
+          cp ${{ matrix.binary_name }} uploads/
+          cp ${{ matrix.binary_name }}.sha256 uploads/
 
       - name: Upload to MinIO
-        run: |
-          # Upload binary and checksum
-          mc cp ${{ matrix.binary_name }} sona/${{ env.MINIO_BUCKET }}/${{ env.MINIO_FOLDER }}/
-          mc cp ${{ matrix.binary_name }}.sha256 sona/${{ env.MINIO_FOLDER }}/
-          
-          echo "Uploaded ${{ matrix.binary_name }} to MinIO"
+        uses: lovellfelix/minio-deploy-action@v1
+        with:
+          endpoint: ${{ secrets.MINIO_ENDPOINT }}
+          access_key: ${{ secrets.MINIO_ACCESS_KEY }}
+          secret_key: ${{ secrets.MINIO_SECRET_KEY }}
+          bucket: ${{ env.MINIO_BUCKET }}
+          source_dir: 'uploads'
+          target_dir: '${{ env.MINIO_FOLDER }}'
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -109,24 +102,3 @@ jobs:
           path: |
             ${{ matrix.binary_name }}
             ${{ matrix.binary_name }}.sha256
-
-  release:
-    needs: build
-    runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/')
-    
-    steps:
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts
-
-      - name: Create Release
-        uses: softprops/action-gh-release@v1
-        with:
-          files: |
-            artifacts/*/sona-*
-            artifacts/*/sona-*.sha256
-          generate_release_notes: true
-          draft: false
-          prerelease: false
