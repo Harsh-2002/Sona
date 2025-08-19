@@ -18,42 +18,42 @@ var InteractiveCmd = &cobra.Command{
 	Short: "Start interactive mode",
 	Long:  `Start interactive mode to guide you through the transcription process step by step.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		runInteractiveMode()
+		runInteractiveMode(cmd, args)
 	},
 }
 
-func runInteractiveMode() {
+func runInteractiveMode(cmd *cobra.Command, args []string) {
 	fmt.Println("--------------------------------")
 	fmt.Println("❇️  Sona is your go-to tool for turning audio files or YouTube videos into text—fast, easy, and accurate.")
 	fmt.Println("--------------------------------")
 
-	// Check if API key is set
-	apiKey := checkAndSetAPIKey()
+	// Check and set API key if needed
+	checkAndSetAPIKey()
 
-	// Get last session settings
+	// Get last used settings
 	lastSourceType := config.GetLastSourceType()
 	lastSpeechModel := config.GetLastSpeechModel()
 	lastOutputPath := config.GetLastOutputPath()
 
-	// Ask for source type with last used as default
+	// Prompt for source type
 	sourceType := promptSourceType(lastSourceType)
 
-	// Get source path or URL
+	// Prompt for source
 	source := promptSource(sourceType)
 
-	// Ask for output path (optional) with last used as default
+	// Prompt for output path
 	outputPath := promptOutputPath(lastOutputPath)
 
-	// Ask for speech model (optional) with last used as default
+	// Prompt for speech model
 	speechModel := promptSpeechModel(lastSpeechModel)
 
-	// Confirm settings
+	// Show summary and confirm
 	if !confirmSettings(sourceType, source, outputPath, speechModel) {
-		fmt.Println("Operation canceled")
+		fmt.Println("Operation cancelled.")
 		return
 	}
 
-	// Save settings for next time
+	// Save last used settings
 	config.SaveLastSession(sourceType, speechModel, outputPath)
 
 	// Set command-line flags
@@ -67,9 +67,9 @@ func runInteractiveMode() {
 	// Process based on source type
 	var err error
 	if sourceType == "youtube" {
-		err = transcriber.ProcessYouTubeVideo(source, apiKey)
+		err = transcriber.ProcessYouTubeVideo(source, outputPath, speechModel)
 	} else {
-		err = transcriber.ProcessLocalAudio(source, apiKey)
+		err = transcriber.ProcessLocalAudio(source, outputPath, speechModel)
 	}
 
 	if err != nil {

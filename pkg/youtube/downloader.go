@@ -2,116 +2,67 @@ package youtube
 
 import (
 	"bytes"
-	"context"
 	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
-	"strconv"
 	"strings"
-	"time"
+
+	"github.com/Harsh-2002/Sona/pkg/logger"
 )
 
 // DownloadAudio downloads audio from a YouTube URL using yt-dlp
 func DownloadAudio(url string, outputDir string) (string, error) {
-	fmt.Println("Downloading audio from YouTube...")
+	logger.LogInfo("Downloading audio from YouTube URL: %s", url)
 
 	// Check if yt-dlp is installed
 	ytdlpPath, err := FindBinary("yt-dlp")
 	if err != nil {
 		// Try to install yt-dlp
-		fmt.Println("yt-dlp not found, attempting to install...")
+		logger.LogInfo("yt-dlp not found, attempting to install")
 		if err := InstallYtDlp(); err != nil {
+			logger.LogError("Failed to install yt-dlp: %v", err)
 			return "", fmt.Errorf("failed to install yt-dlp: %v", err)
 		}
 
 		// Check again
 		ytdlpPath, err = FindBinary("yt-dlp")
 		if err != nil {
+			logger.LogError("yt-dlp not found after installation attempt: %v", err)
 			return "", fmt.Errorf("yt-dlp not found after installation attempt: %v", err)
 		}
 	}
 
-	fmt.Printf("Using yt-dlp: %s\n", ytdlpPath)
+	logger.LogInfo("Using yt-dlp: %s", ytdlpPath)
 
 	// Create output filename
-	outputFile := filepath.Join(outputDir, "audio.mp3")
+	outputFilename := "youtube_audio.mp3"
+	outputPath := filepath.Join(outputDir, outputFilename)
 
-	// Get video info first
-	title, duration, err := getVideoInfo(url)
-	if err != nil {
-		fmt.Printf("Warning: Could not get video info: %v\n", err)
-		title = "Unknown"
-		duration = "Unknown"
-	} else {
-		fmt.Printf("Video: %s\n", title)
-		fmt.Printf("Duration: %s\n", formatDuration(duration))
-	}
-
-	// Create context with timeout
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
-	defer cancel()
-
-	// Download the audio using yt-dlp
-	fmt.Println("Downloading audio stream...")
-
-	// Prepare command
-	cmd := exec.CommandContext(ctx, ytdlpPath,
+	// Build yt-dlp command
+	args := []string{
 		"--extract-audio",
 		"--audio-format", "mp3",
 		"--audio-quality", "0",
-		"--output", outputFile,
-		"--no-playlist",
-		"--progress",
-		"--quiet",
+		"--output", outputPath,
 		url,
-	)
+	}
 
-	// Redirect output to null to hide technical details
-	cmd.Stdout = nil
-	cmd.Stderr = nil
+	logger.LogInfo("Running yt-dlp command: yt-dlp %v", args)
 
-	// Run the command
+	// Execute yt-dlp
+	cmd := exec.Command(ytdlpPath, args...)
+	var stderr bytes.Buffer
+	cmd.Stderr = &stderr
+
 	if err := cmd.Run(); err != nil {
+		logger.LogError("yt-dlp command failed: %v, stderr: %s", err, stderr.String())
 		return "", fmt.Errorf("failed to download audio: %v", err)
 	}
 
-	// Verify file exists
-	if _, err := os.Stat(outputFile); err != nil {
-		return "", fmt.Errorf("failed to find downloaded file: %v", err)
-	}
-
-	// Get file size
-	fileInfo, err := os.Stat(outputFile)
-	if err != nil {
-		return "", fmt.Errorf("failed to get file info: %v", err)
-	}
-
-	fmt.Printf("Audio download completed successfully (%.2f MB)\n", float64(fileInfo.Size())/1024/1024)
-
-	return outputFile, nil
-}
-
-// formatDuration converts duration string to human-readable format
-// Examples: "1342" -> "22m 22s", "90" -> "1m 30s", "45" -> "45s"
-func formatDuration(duration string) string {
-	// Try to parse as integer seconds
-	if seconds, err := strconv.Atoi(duration); err == nil {
-		minutes := seconds / 60
-		remainingSeconds := seconds % 60
-
-		if minutes > 0 {
-			if remainingSeconds > 0 {
-				return fmt.Sprintf("%dm %ds", minutes, remainingSeconds)
-			}
-			return fmt.Sprintf("%dm", minutes)
-		}
-		return fmt.Sprintf("%ds", remainingSeconds)
-	}
-
-	// If parsing fails, return as-is (might already be formatted)
-	return duration
+	logger.LogInfo("Audio download completed successfully: %s", outputPath)
+	return outputPath, nil
 }
 
 // FindBinary finds a binary in PATH or user's bin directory
@@ -137,97 +88,51 @@ func FindBinary(binaryName string) (string, error) {
 // InstallYtDlp attempts to install yt-dlp
 func InstallYtDlp() error {
 	// Direct binary download is more reliable across platforms
-	fmt.Println("Downloading yt-dlp binary directly...")
+	logger.LogInfo("Installing yt-dlp binary directly")
 	return downloadYtDlpBinary()
 }
 
 // downloadYtDlpBinary downloads yt-dlp binary directly for the current platform
 func downloadYtDlpBinary() error {
-	// Determine platform and architecture
-	platform := getPlatform()
-	arch := getArchitecture()
+	platform, arch := getPlatform(), getArchitecture()
+	logger.LogInfo("Detected platform: %s, architecture: %s", platform, arch)
 
-	fmt.Printf("Detected platform: %s, architecture: %s\n", platform, arch)
-
-	// Get the appropriate download URL for this platform
 	downloadURL := getYtDlpDownloadURL(platform, arch)
 	if downloadURL == "" {
-		return fmt.Errorf("unsupported platform: %s/%s", platform, arch)
+		return fmt.Errorf("unsupported platform: %s-%s", platform, arch)
 	}
 
-	fmt.Printf("Download URL: %s\n", downloadURL)
+	logger.LogInfo("Download URL: %s", downloadURL)
 
-	// Check if curl or wget is available
-	var downloadCmd *exec.Cmd
-	if _, err := exec.LookPath("curl"); err == nil {
-		downloadCmd = exec.Command("curl", "-L", "-o", "yt-dlp", downloadURL)
-	} else if _, err := exec.LookPath("wget"); err == nil {
-		downloadCmd = exec.Command("wget", "-O", "yt-dlp", downloadURL)
-	} else {
-		return fmt.Errorf("neither curl nor wget found - cannot download yt-dlp")
-	}
-
-	fmt.Println("Downloading yt-dlp binary...")
-
-	// Get user's bin directory
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		return fmt.Errorf("failed to get home directory: %v", err)
-	}
-
-	userBin := filepath.Join(homeDir, "bin")
-	if err := os.MkdirAll(userBin, 0755); err != nil {
+	// Create bin directory if it doesn't exist
+	binDir := filepath.Join(os.Getenv("HOME"), "bin")
+	if err := os.MkdirAll(binDir, 0755); err != nil {
 		return fmt.Errorf("failed to create bin directory: %v", err)
 	}
 
-	// Change to user's bin directory for download
-	originalDir, err := os.Getwd()
-	if err != nil {
-		return fmt.Errorf("failed to get current directory: %v", err)
-	}
+	// Download the binary
+	outputPath := filepath.Join(binDir, "yt-dlp")
+	logger.LogInfo("Downloading yt-dlp binary to: %s", binDir)
 
-	if err := os.Chdir(userBin); err != nil {
-		return fmt.Errorf("failed to change to bin directory: %v", err)
-	}
-	defer os.Chdir(originalDir)
-
-	// Download the binary with verbose output
-	fmt.Printf("Downloading to: %s\n", userBin)
-
-	// Capture output for debugging
-	var stderr bytes.Buffer
-	downloadCmd.Stderr = &stderr
-
-	if err := downloadCmd.Run(); err != nil {
-		return fmt.Errorf("failed to download yt-dlp: %v\nStderr: %s", err, stderr.String())
-	}
-
-	// Verify the file was downloaded
-	if _, err := os.Stat("yt-dlp"); err != nil {
-		return fmt.Errorf("downloaded file not found: %v", err)
-	}
-
-	// Get file size
-	if fileInfo, err := os.Stat("yt-dlp"); err == nil {
-		fmt.Printf("Downloaded file size: %d bytes\n", fileInfo.Size())
-		if fileInfo.Size() == 0 {
-			return fmt.Errorf("downloaded file is empty")
-		}
+	cmd := exec.Command("curl", "-L", "-o", outputPath, downloadURL)
+	if output, err := cmd.CombinedOutput(); err != nil {
+		logger.LogError("Failed to download yt-dlp: %v, output: %s", err, string(output))
+		return fmt.Errorf("download failed: %v", err)
 	}
 
 	// Make it executable
-	targetPath := filepath.Join(userBin, "yt-dlp")
-	if err := os.Chmod(targetPath, 0755); err != nil {
+	if err := os.Chmod(outputPath, 0755); err != nil {
 		return fmt.Errorf("failed to make yt-dlp executable: %v", err)
 	}
 
-	fmt.Printf("✅ yt-dlp installed successfully to: %s\n", targetPath)
-
-	// Try to add to PATH for current session
-	if err := addToPath(userBin); err != nil {
-		fmt.Printf("⚠️  Warning: Could not update PATH. You may need to restart your terminal or run: export PATH=$PATH:%s\n", userBin)
+	// Verify the download
+	if info, err := os.Stat(outputPath); err != nil {
+		return fmt.Errorf("failed to verify download: %v", err)
+	} else {
+		logger.LogInfo("Downloaded file size: %d bytes", info.Size())
 	}
 
+	logger.LogInfo("yt-dlp installed successfully to: %s", outputPath)
 	return nil
 }
 
@@ -303,59 +208,4 @@ func addToPath(binDir string) error {
 // IsYouTubeURL checks if the given string is a YouTube URL
 func IsYouTubeURL(url string) bool {
 	return strings.Contains(url, "youtube.com") || strings.Contains(url, "youtu.be")
-}
-
-// getVideoInfo gets basic information about a YouTube video
-func getVideoInfo(url string) (string, string, error) {
-	// Create context with timeout
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
-
-	// Check if yt-dlp is installed
-	ytdlpPath, err := FindBinary("yt-dlp")
-	if err != nil {
-		// Try to install yt-dlp
-		fmt.Println("yt-dlp not found, attempting to install...")
-		if err := InstallYtDlp(); err != nil {
-			return "", "", fmt.Errorf("failed to install yt-dlp: %v", err)
-		}
-
-		// Check again
-		ytdlpPath, err = FindBinary("yt-dlp")
-		if err != nil {
-			return "", "", fmt.Errorf("yt-dlp not found after installation attempt: %v", err)
-		}
-	}
-
-	fmt.Printf("Using yt-dlp: %s\n", ytdlpPath)
-
-	// Get video info using yt-dlp
-	cmd := exec.CommandContext(ctx, ytdlpPath,
-		"--print", "title",
-		"--print", "duration",
-		"--no-playlist",
-		"--no-download",
-		url,
-	)
-
-	output, err := cmd.Output()
-	if err != nil {
-		return "", "", fmt.Errorf("failed to get video info: %v", err)
-	}
-
-	// Parse output (title and duration are on separate lines)
-	lines := strings.Split(strings.TrimSpace(string(output)), "\n")
-	if len(lines) < 2 {
-		return "", "", fmt.Errorf("unexpected output format from yt-dlp")
-	}
-
-	title := lines[0]
-	duration := lines[1]
-
-	return title, duration, nil
-}
-
-// GetVideoInfo gets basic information about a YouTube video (public API)
-func GetVideoInfo(url string) (string, string, error) {
-	return getVideoInfo(url)
 }

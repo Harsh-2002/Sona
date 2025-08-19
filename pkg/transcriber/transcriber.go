@@ -13,6 +13,7 @@ import (
 
 	"github.com/Harsh-2002/Sona/pkg/assemblyai"
 	"github.com/Harsh-2002/Sona/pkg/config"
+	"github.com/Harsh-2002/Sona/pkg/logger"
 	"github.com/Harsh-2002/Sona/pkg/youtube"
 	"github.com/spf13/cobra"
 )
@@ -41,10 +42,6 @@ Examples:
 		source := args[0]
 		fmt.Printf("Source: %s\n", source)
 
-		// Get API key
-		apiKey := config.GetAPIKey()
-		fmt.Println("API key retrieved successfully")
-
 		// Check and install dependencies
 		if err := checkAndInstallDependencies(); err != nil {
 			fmt.Printf("Error: Dependency check failed: %v\n", err)
@@ -54,13 +51,13 @@ Examples:
 		// Determine source type and process
 		if youtube.IsYouTubeURL(source) {
 			fmt.Println("Processing YouTube URL...")
-			if err := processYouTubeVideo(source, apiKey); err != nil {
+			if err := processYouTubeVideo(source, outputPath, speechModel); err != nil {
 				fmt.Printf("Error: YouTube processing failed: %v\n", err)
 				os.Exit(1)
 			}
 		} else {
 			fmt.Println("Processing local audio file...")
-			if err := processLocalAudio(source, apiKey); err != nil {
+			if err := processLocalAudio(source, outputPath, speechModel); err != nil {
 				fmt.Printf("Error: Local audio processing failed: %v\n", err)
 				os.Exit(1)
 			}
@@ -78,72 +75,74 @@ func init() {
 // checkAndInstallDependencies ensures both yt-dlp and ffmpeg are available
 func checkAndInstallDependencies() error {
 	fmt.Println("🔍 Checking dependencies...")
+	logger.LogInfo("Checking and installing dependencies")
 
 	// Check yt-dlp
 	ytdlpPath, err := youtube.FindBinary("yt-dlp")
 	if err != nil {
-		fmt.Println("📥 yt-dlp not found, installing...")
+		fmt.Println("📥 Installing yt-dlp...")
+		logger.LogInfo("yt-dlp not found, installing")
 		if err := youtube.InstallYtDlp(); err != nil {
+			logger.LogError("Failed to install yt-dlp: %v", err)
 			return fmt.Errorf("failed to install yt-dlp: %v", err)
 		}
 		fmt.Println("✅ yt-dlp installed successfully")
 	} else {
-		fmt.Printf("✅ yt-dlp found at: %s\n", ytdlpPath)
+		logger.LogInfo("yt-dlp found at: %s", ytdlpPath)
 	}
 
 	// Check ffmpeg
 	ffmpegPath, err := FindBinary("ffmpeg")
-	if err == nil {
-		fmt.Printf("✅ FFmpeg found at: %s\n", ffmpegPath)
-	} else {
-		fmt.Println("📥 FFmpeg not found, installing...")
+	if err != nil {
+		fmt.Println("📥 Installing FFmpeg...")
+		logger.LogInfo("FFmpeg not found, installing")
 		if err := installFFmpeg(); err != nil {
+			logger.LogError("Failed to install FFmpeg: %v", err)
 			return fmt.Errorf("failed to install FFmpeg: %v", err)
 		}
 		fmt.Println("✅ FFmpeg installed successfully")
+	} else {
+		logger.LogInfo("FFmpeg found at: %s", ffmpegPath)
 	}
 
 	fmt.Println("🎯 All dependencies are ready!")
 	return nil
 }
 
-func processYouTubeVideo(url string, apiKey string) error {
-	// Get video info first
-	title, _, err := youtube.GetVideoInfo(url)
-	if err == nil {
-		fmt.Printf("Processing: %s\n", title)
-	}
-
-	// Create temporary directory for downloads
-	tempDir, err := os.MkdirTemp("", "sona-*")
-	if err != nil {
-		return fmt.Errorf("failed to create temp directory: %v", err)
-	}
-	defer os.RemoveAll(tempDir)
+func processYouTubeVideo(url string, outputPath string, speechModel string) error {
+	fmt.Println("Processing YouTube URL...")
+	logger.LogInfo("Processing YouTube video: %s", url)
 
 	// Download audio from YouTube
-	fmt.Println("Downloading from YouTube...")
-
-	audioPath, err := youtube.DownloadAudio(url, tempDir)
+	audioFile, err := youtube.DownloadAudio(url, filepath.Dir(outputPath))
 	if err != nil {
-		return fmt.Errorf("download failed: %v", err)
+		logger.LogError("Failed to download YouTube audio: %v", err)
+		return fmt.Errorf("failed to download YouTube audio: %v", err)
 	}
 
+	logger.LogInfo("Audio downloaded successfully: %s", audioFile)
+
 	// Transcribe the audio
-	transcript, err := transcribeAudio(audioPath, apiKey)
+	transcript, err := transcribeAudio(audioFile, speechModel)
 	if err != nil {
-		return fmt.Errorf("transcription failed: %v", err)
+		logger.LogError("Failed to transcribe YouTube audio: %v", err)
+		return fmt.Errorf("failed to transcribe audio: %v", err)
 	}
 
 	// Save transcript
 	if err := saveTranscript(transcript, url, "youtube"); err != nil {
+		logger.LogError("Failed to save transcript: %v", err)
 		return fmt.Errorf("failed to save transcript: %v", err)
 	}
+
+	// Clean up audio file
+	os.Remove(audioFile)
+	logger.LogInfo("YouTube video processing completed successfully")
 
 	return nil
 }
 
-func processLocalAudio(filePath string, apiKey string) error {
+func processLocalAudio(filePath string, outputPath string, speechModel string) error {
 	// Check if file exists
 	_, err := os.Stat(filePath)
 	if os.IsNotExist(err) {
@@ -167,7 +166,7 @@ func processLocalAudio(filePath string, apiKey string) error {
 	}
 
 	// Transcribe the converted audio
-	transcript, err := transcribeAudio(convertedPath, apiKey)
+	transcript, err := transcribeAudio(convertedPath, speechModel)
 	if err != nil {
 		return fmt.Errorf("transcription failed: %v", err)
 	}
@@ -506,14 +505,14 @@ func addToPath(binDir string) error {
 	return os.Setenv("PATH", currentPath)
 }
 
-func transcribeAudio(audioPath string, apiKey string) (string, error) {
+func transcribeAudio(audioPath string, speechModel string) (string, error) {
 	// Verify file exists
 	_, err := os.Stat(audioPath)
 	if err != nil {
 		return "", fmt.Errorf("failed to open audio file: %v", err)
 	}
 
-	client := assemblyai.NewClient(apiKey)
+	client := assemblyai.NewClient(config.GetAPIKey())
 	return client.TranscribeAudio(audioPath, speechModel)
 }
 
@@ -534,24 +533,22 @@ func saveTranscript(transcript string, source string, sourceType string) error {
 		var title string
 
 		if sourceType == "youtube" {
-			// Get video title from YouTube
-			var err error
-			title, _, err = youtube.GetVideoInfo(source)
-			if err != nil {
-				// Fallback to video ID if title can't be retrieved
-				if strings.Contains(source, "v=") {
-					parts := strings.Split(source, "v=")
-					if len(parts) > 1 {
-						videoID := strings.Split(parts[1], "&")[0]
-						title = videoID
-					}
-				} else if strings.Contains(source, "youtu.be/") {
-					parts := strings.Split(source, "youtu.be/")
-					if len(parts) > 1 {
-						videoID := strings.Split(parts[1], "?")[0]
-						title = videoID
-					}
+			// Extract video ID from YouTube URL for filename
+			if strings.Contains(source, "v=") {
+				parts := strings.Split(source, "v=")
+				if len(parts) > 1 {
+					videoID := strings.Split(parts[1], "&")[0]
+					title = "youtube-" + videoID
 				}
+			} else if strings.Contains(source, "youtu.be/") {
+				parts := strings.Split(source, "youtu.be/")
+				if len(parts) > 1 {
+					videoID := strings.Split(parts[1], "?")[0]
+					title = "youtube-" + videoID
+				}
+			}
+			if title == "" {
+				title = "youtube-video"
 			}
 		} else {
 			// For local files, use the filename without extension
@@ -636,11 +633,11 @@ func SetSpeechModel(model string) {
 }
 
 // ProcessYouTubeVideo processes a YouTube video URL
-func ProcessYouTubeVideo(url string, apiKey string) error {
-	return processYouTubeVideo(url, apiKey)
+func ProcessYouTubeVideo(url string, outputPath string, speechModel string) error {
+	return processYouTubeVideo(url, outputPath, speechModel)
 }
 
 // ProcessLocalAudio processes a local audio file
-func ProcessLocalAudio(filePath string, apiKey string) error {
-	return processLocalAudio(filePath, apiKey)
+func ProcessLocalAudio(filePath string, outputPath string, speechModel string) error {
+	return processLocalAudio(filePath, outputPath, speechModel)
 }

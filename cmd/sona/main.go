@@ -7,6 +7,7 @@ import (
 
 	"github.com/Harsh-2002/Sona/pkg/config"
 	"github.com/Harsh-2002/Sona/pkg/interactive"
+	"github.com/Harsh-2002/Sona/pkg/logger"
 	"github.com/Harsh-2002/Sona/pkg/transcriber"
 	"github.com/Harsh-2002/Sona/pkg/youtube"
 	"github.com/spf13/cobra"
@@ -99,8 +100,15 @@ var statusCmd = &cobra.Command{
 }
 
 func main() {
+	// Initialize logger
+	if err := logger.InitLogger(); err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to initialize logger: %v\n", err)
+		os.Exit(1)
+	}
+	defer logger.CloseLogger()
+
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Println(err)
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}
 }

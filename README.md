@@ -186,6 +186,22 @@ Sona stores your settings in `~/.sona/config.toml`:
 - For uninstall: `sudo ./install.sh --uninstall`
 - Check file permissions
 
+### Debugging
+
+**Check the log file:**
+```bash
+cat ~/.sona/sona.log
+```
+
+The log file contains detailed information about:
+- Dependency installation
+- YouTube downloads
+- Audio processing
+- Transcription steps
+- Error details
+
+**Location:** `~/.sona/sona.log`
+
 ### Updating Sona
 
 **Automatic updates:**
