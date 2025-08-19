@@ -6,9 +6,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/root/sona-ai/pkg/config"
-	"github.com/root/sona-ai/pkg/transcriber"
-	"github.com/root/sona-ai/pkg/youtube"
+	"github.com/Harsh-2002/Sona/pkg/config"
+	"github.com/Harsh-2002/Sona/pkg/transcriber"
+	"github.com/Harsh-2002/Sona/pkg/youtube"
 	"github.com/spf13/cobra"
 )
 

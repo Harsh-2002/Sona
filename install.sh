@@ -81,13 +81,8 @@ get_installed_version() {
 
 # Function to get latest version from GitHub
 get_latest_version() {
-    if command -v curl >/dev/null 2>&1; then
-        curl -s "https://api.github.com/repos/root/sona-ai/releases/latest" | grep '"tag_name"' | cut -d'"' -f4 2>/dev/null || echo "latest"
-    elif command -v wget >/dev/null 2>&1; then
-        wget -qO- "https://api.github.com/repos/root/sona-ai/releases/latest" | grep '"tag_name"' | cut -d'"' -f4 2>/dev/null || echo "latest"
-    else
-        echo "latest"
-    fi
+    # Always return "latest" since we download from MinIO S3 bucket
+    echo "latest"
 }
 
 # Function to check if sona is already installed
@@ -123,7 +118,7 @@ download_binary() {
 
     mv "$temp_file" "$INSTALL_DIR/$BINARY_NAME"
     chmod +x "$INSTALL_DIR/$BINARY_NAME"
-    echo "$(get_latest_version)" > "$VERSION_FILE"
+    echo "latest" > "$VERSION_FILE"
     print_status "$GREEN" "✅ Downloaded and installed sona to $INSTALL_DIR/"
 }
 
@@ -148,19 +143,9 @@ install_sona() {
     fi
 
     if is_installed; then
-        local current_version=$(get_installed_version)
-        local latest_version=$(get_latest_version)
-        
-        if [ "$current_version" != "$latest_version" ] && [ "$latest_version" != "latest" ]; then
-            print_status "$YELLOW" "🔄 Updating existing installation..."
-            print_status "$BLUE" "Current version: $current_version"
-            print_status "$BLUE" "Latest version: $latest_version"
-            rm -f "$INSTALL_DIR/$BINARY_NAME"
-            rm -f "$VERSION_FILE"
-        else
-            print_status "$GREEN" "✅ Sona is already up to date!"
-            return 0
-        fi
+        print_status "$YELLOW" "🔄 Updating existing installation..."
+        rm -f "$INSTALL_DIR/$BINARY_NAME"
+        rm -f "$VERSION_FILE"
     fi
 
     print_status "$BLUE" "📦 Installing $binary_name for $platform"
@@ -236,7 +221,7 @@ DEFAULT ACTION:
     If no option is specified, Sona will be installed (or updated if already installed)
 
 EXAMPLES:
-    $0                    # Install/Update Sona
+    $0                    # Install/Update Sona (always latest version)
     $0 --uninstall       # Uninstall Sona
     $0 --help            # Show this help message
 
@@ -244,10 +229,10 @@ NOTES:
     - Requires root privileges for system-wide installation
     - Automatically detects your platform (Linux, macOS, Windows)
     - Supports AMD64 and ARM64 architectures
-    - Downloads from official Sona releases
+    - Downloads latest version from MinIO S3 bucket
     - Dependencies (yt-dlp, FFmpeg) are auto-installed when needed
 
-For more information, visit: https://github.com/root/sona-ai
+For more information, visit: https://github.com/Harsh-2002/Sona
 EOF
 }
 

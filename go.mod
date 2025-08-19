@@ -1,4 +1,4 @@
-module github.com/root/sona-ai
+module github.com/Harsh-2002/Sona
 
 go 1.23.0
 

@@ -29,6 +29,18 @@ wget -qO- https://raw.githubusercontent.com/Harsh-2002/Sona/main/install.sh | su
    sudo ./install.sh
    ```
 
+### Uninstalling Sona
+
+**Remove Sona completely:**
+```bash
+sudo ./install.sh --uninstall
+```
+
+The uninstaller will:
+- Remove the Sona binary
+- Ask if you want to remove auto-installed dependencies (yt-dlp, FFmpeg)
+- Clean up configuration files
+
 **Note**: The installer requires root privileges to install Sona system-wide in `/usr/local/bin/`, making it accessible from anywhere on your system.
 
 ## 📥 Direct Downloads
@@ -171,7 +183,17 @@ Sona stores your settings in `~/.sona/config.toml`:
 
 **"Permission denied"**
 - Run installer with `sudo ./install.sh`
+- For uninstall: `sudo ./install.sh --uninstall`
 - Check file permissions
+
+### Updating Sona
+
+**Automatic updates:**
+```bash
+sudo ./install.sh
+```
+
+The installer automatically detects if you have an older version and updates it. No need for separate upgrade commands!
 
 ### Getting Help
 
