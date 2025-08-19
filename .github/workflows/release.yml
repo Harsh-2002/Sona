@@ -1,15 +1,10 @@
-name: Build and Release Sona
+name: Build and Upload Sona
 
 on:
   push:
-    tags:
-      - 'v*'
-  workflow_dispatch:
-    inputs:
-      version:
-        description: 'Version to build (e.g., v1.0.0)'
-        required: true
-        default: 'v1.0.0'
+    branches:
+      - main
+      - master
 
 env:
   MINIO_ENDPOINT: ${{ secrets.MINIO_ENDPOINT }}
@@ -19,7 +14,7 @@ env:
   MINIO_FOLDER: sona
 
 jobs:
-  build:
+  build-and-upload:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -52,22 +47,13 @@ jobs:
         with:
           go-version: '1.24'
 
-      - name: Get version
-        id: version
-        run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
-          else
-            echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
-          fi
-
       - name: Build Sona
         run: |
-          echo "Building Sona ${{ steps.version.outputs.version }} for ${{ matrix.os }}/${{ matrix.arch }}"
+          echo "Building Sona for ${{ matrix.os }}/${{ matrix.arch }}"
           
           # Build the binary
           GOOS=${{ matrix.os }} GOARCH=${{ matrix.arch }} go build \
-            -ldflags="-s -w -X main.version=${{ steps.version.outputs.version }}" \
+            -ldflags="-s -w" \
             -o ${{ matrix.binary_name }} \
             cmd/sona/main.go
           
@@ -76,15 +62,6 @@ jobs:
           
           echo "Build completed: ${{ matrix.binary_name }}"
 
-      - name: Create upload directory
-        run: |
-          mkdir -p uploads
-
-      - name: Copy files to upload directory
-        run: |
-          cp ${{ matrix.binary_name }} uploads/
-          cp ${{ matrix.binary_name }}.sha256 uploads/
-
       - name: Upload to MinIO
         uses: lovellfelix/minio-deploy-action@v1
         with:
@@ -92,13 +69,8 @@ jobs:
           access_key: ${{ secrets.MINIO_ACCESS_KEY }}
           secret_key: ${{ secrets.MINIO_SECRET_KEY }}
           bucket: ${{ env.MINIO_BUCKET }}
-          source_dir: 'uploads'
+          source_dir: '.'
           target_dir: '${{ env.MINIO_FOLDER }}'
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ matrix.os }}-${{ matrix.arch }}
-          path: |
+          include: |
             ${{ matrix.binary_name }}
             ${{ matrix.binary_name }}.sha256

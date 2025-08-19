@@ -1,6 +1,6 @@
 # GitHub Workflow Setup
 
-This workflow automatically builds Sona for all platforms and uploads binaries to your MinIO S3 bucket.
+This workflow automatically builds Sona for all platforms and uploads binaries to your MinIO S3 bucket on every push.
 
 ## Required Secrets
 
@@ -23,12 +23,20 @@ Your MinIO secret key
 
 ## How It Works
 
-1. **Trigger**: Push a tag (e.g., `v1.0.0`) or manually run the workflow
+1. **Trigger**: Push to main/master branch
 2. **Build**: Creates binaries for 6 platforms:
    - Linux (AMD64, ARM64)
    - macOS (Intel, Apple Silicon)
    - Windows (AMD64, ARM64)
-3. **Upload**: Saves binaries to MinIO bucket `artifact/sona/`
+3. **Upload**: Saves new binaries to MinIO bucket `artifact/sona/` (overwrites old ones)
+
+## Setup Required
+
+**Important**: Create the `sona` folder manually in your MinIO bucket:
+1. Go to your MinIO console
+2. Navigate to the `artifact` bucket
+3. Create a folder named `sona`
+4. The workflow will automatically upload binaries there
 
 ## Binary Names
 
@@ -40,11 +48,19 @@ The workflow creates standardized names:
 - `sona-windows-amd64.exe` - Windows Intel/AMD
 - `sona-windows-arm64.exe` - Windows ARM64
 
-## Manual Run
+## What Happens on Push
 
-You can manually trigger the workflow:
-1. Go to **Actions** tab
-2. Select **Build and Release Sona**
-3. Click **Run workflow**
-4. Enter version (e.g., `v1.0.0`)
-5. Click **Run workflow**
+Every time you push to main/master:
+1. All 6 platform binaries are built
+2. New binaries are uploaded to MinIO (overwrites old ones)
+3. No GitHub releases - just MinIO storage
+
+## No Manual Triggers
+
+This workflow runs automatically on every push. No need to:
+- Create git tags
+- Run manual workflows
+- Manage versions
+- Handle releases
+
+Just push your code and the binaries will be built and uploaded automatically!

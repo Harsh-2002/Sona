@@ -278,25 +278,15 @@ We're planning to add:
 - **Progress bars** - See how things are going
 - **Auto-updates** - Sona updates itself automatically
 
-## 🚀 Version Management
+## 🚀 Automated Builds
 
-Sona automatically manages versions and builds. When we create a new version:
+Sona automatically builds and uploads on every push to main/master:
 
-1. **Create the version** - `./scripts/release.sh 1.0.0`
-2. **GitHub Actions** - Automatically builds for all platforms
-3. **MinIO Upload** - Binaries uploaded to your S3 bucket
+1. **Push to main** - Triggers GitHub Actions
+2. **Build all platforms** - Linux, macOS, Windows (AMD64/ARM64)
+3. **Upload new binaries** - Fresh builds to your S3 bucket (overwrites old ones)
 
-### Creating a Release
-
-```bash
-# Create and push a new version
-./scripts/release.sh 1.0.0
-
-# This will:
-# - Create git tag v1.0.0
-# - Push to GitHub
-# - Trigger automated build and MinIO upload
-```
+**Note**: Create the `sona` folder manually in your MinIO `artifact` bucket before first use.
 
 ## 🤝 Want to Help?
 
