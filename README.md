@@ -1,4 +1,4 @@
-# Sona - Audio Transcription Tool
+# Sona - Audio Transcription Tool (CLI)
 
 Turn audio files and YouTube videos into text with just a few commands. Sona uses AssemblyAI's speech recognition to give you accurate transcripts quickly and easily.
 
