@@ -70,7 +70,7 @@ pkg/
 - `IsYouTubeURL()` - Validate YouTube URLs
 - `GetVideoInfo()` - Get video metadata
 
-**Dependencies**: `github.com/kkdai/youtube/v2`
+**Dependencies**: Native yt-dlp binary management
 
 ## Data Flow
 

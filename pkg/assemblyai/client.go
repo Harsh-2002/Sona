@@ -87,7 +87,7 @@ func (c *Client) uploadAudioFile(audioPath string) (string, error) {
 	// Create multipart form
 	var buf bytes.Buffer
 	writer := multipart.NewWriter(&buf)
-	
+
 	part, err := writer.CreateFormFile("file", "audio.mp3")
 	if err != nil {
 		return "", fmt.Errorf("failed to create form file: %v", err)
@@ -174,7 +174,9 @@ func (c *Client) submitTranscription(audioURL string, speechModel string) (strin
 
 // pollTranscription polls the transcription status until completion
 func (c *Client) pollTranscription(transcriptID string) (*TranscriptResult, error) {
-	for {
+	const maxAttempts = 100 // Maximum polling attempts (5 minutes at 3s intervals)
+
+	for attempts := 0; attempts < maxAttempts; attempts++ {
 		req, err := http.NewRequest("GET", fmt.Sprintf("https://api.assemblyai.com/v2/transcript/%s", transcriptID), nil)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create polling request: %v", err)
@@ -187,12 +189,14 @@ func (c *Client) pollTranscription(transcriptID string) (*TranscriptResult, erro
 			return nil, fmt.Errorf("failed to poll transcription: %v", err)
 		}
 
+		// Read response body properly
+		var result TranscriptResult
 		if resp.StatusCode != http.StatusOK {
+			body, _ := io.ReadAll(resp.Body)
 			resp.Body.Close()
-			return nil, fmt.Errorf("polling failed with status %d", resp.StatusCode)
+			return nil, fmt.Errorf("polling failed with status %d: %s", resp.StatusCode, string(body))
 		}
 
-		var result TranscriptResult
 		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 			resp.Body.Close()
 			return nil, fmt.Errorf("failed to decode polling response: %v", err)
@@ -205,10 +209,14 @@ func (c *Client) pollTranscription(transcriptID string) (*TranscriptResult, erro
 		case "error":
 			return &result, nil
 		case "queued", "processing", "":
-			// Just wait silently
+			// Continue polling
 			time.Sleep(3 * time.Second)
 		default:
+			// Unknown status - log and continue with limited attempts
+			fmt.Printf("Warning: Unknown transcription status '%s', continuing...\n", result.Status)
 			time.Sleep(3 * time.Second)
 		}
 	}
+
+	return nil, fmt.Errorf("transcription polling timed out after %d attempts", maxAttempts)
 }

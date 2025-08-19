@@ -9,10 +9,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/spf13/cobra"
 	"github.com/root/sona-ai/pkg/assemblyai"
 	"github.com/root/sona-ai/pkg/config"
 	"github.com/root/sona-ai/pkg/youtube"
+	"github.com/spf13/cobra"
 )
 
 var (
@@ -38,11 +38,11 @@ Examples:
 	Run: func(cmd *cobra.Command, args []string) {
 		source := args[0]
 		fmt.Printf("Source: %s\n", source)
-		
+
 		// Get API key
 		apiKey := config.GetAPIKey()
 		fmt.Println("API key retrieved successfully")
-		
+
 		// Determine source type and process
 		if youtube.IsYouTubeURL(source) {
 			fmt.Println("Processing YouTube URL...")
@@ -57,7 +57,7 @@ Examples:
 				os.Exit(1)
 			}
 		}
-		
+
 		fmt.Println("Transcription completed successfully")
 	},
 }
@@ -83,7 +83,7 @@ func processYouTubeVideo(url string, apiKey string) error {
 
 	// Download audio from YouTube
 	fmt.Println("Downloading from YouTube...")
-	
+
 	audioPath, err := youtube.DownloadAudio(url, tempDir)
 	if err != nil {
 		return fmt.Errorf("download failed: %v", err)
@@ -109,7 +109,7 @@ func processLocalAudio(filePath string, apiKey string) error {
 	if os.IsNotExist(err) {
 		return fmt.Errorf("audio file not found: %s", filePath)
 	}
-	
+
 	// Show file info
 	fmt.Printf("Processing: %s\n", filepath.Base(filePath))
 
@@ -143,16 +143,16 @@ func processLocalAudio(filePath string, apiKey string) error {
 // convertAudioToMP3 converts audio file to MP3 format for better compatibility
 func convertAudioToMP3(inputPath string, outputDir string) (string, error) {
 	// Check if ffmpeg is installed
-	ffmpegPath, err := exec.LookPath("ffmpeg")
+	ffmpegPath, err := findFFmpegBinary()
 	if err != nil {
 		// Try to install ffmpeg
 		fmt.Println("FFmpeg not found, attempting to install...")
 		if err := installFFmpeg(); err != nil {
 			return "", fmt.Errorf("FFmpeg is required for audio conversion. Please install it manually: %v", err)
 		}
-		
+
 		// Check again
-		ffmpegPath, err = exec.LookPath("ffmpeg")
+		ffmpegPath, err = findFFmpegBinary()
 		if err != nil {
 			return "", fmt.Errorf("FFmpeg not found after installation attempt: %v", err)
 		}
@@ -160,81 +160,153 @@ func convertAudioToMP3(inputPath string, outputDir string) (string, error) {
 
 	// Create output path
 	outputPath := filepath.Join(outputDir, "converted.mp3")
-	
+
 	fmt.Println("Converting audio to MP3 format...")
-	
+
 	// Run ffmpeg to convert the file
-	cmd := exec.Command(ffmpegPath, 
+	cmd := exec.Command(ffmpegPath,
 		"-i", inputPath,
-		"-vn",                // No video
-		"-ar", "44100",       // Sample rate
-		"-ac", "2",           // Stereo
-		"-b:a", "192k",       // Bitrate
-		"-f", "mp3",          // Format
-		"-y",                 // Overwrite output
+		"-vn",          // No video
+		"-ar", "44100", // Sample rate
+		"-ac", "2", // Stereo
+		"-b:a", "192k", // Bitrate
+		"-f", "mp3", // Format
+		"-y", // Overwrite output
 		outputPath)
-	
+
 	// Hide ffmpeg output
 	cmd.Stdout = nil
 	cmd.Stderr = nil
-	
+
 	if err := cmd.Run(); err != nil {
 		return "", fmt.Errorf("failed to convert audio: %v", err)
 	}
-	
+
 	// Verify the converted file exists
 	if _, err := os.Stat(outputPath); err != nil {
 		return "", fmt.Errorf("converted file not found: %v", err)
 	}
-	
+
 	fmt.Println("Audio conversion completed")
 	return outputPath, nil
 }
 
+// findFFmpegBinary finds FFmpeg binary in PATH or user's bin directory
+func findFFmpegBinary() (string, error) {
+	// First check if it's in PATH
+	if path, err := exec.LookPath("ffmpeg"); err == nil {
+		return path, nil
+	}
+
+	// Check user's bin directory
+	homeDir, err := os.UserHomeDir()
+	if err == nil {
+		userBinPath := filepath.Join(homeDir, "bin", "ffmpeg")
+		if _, err := os.Stat(userBinPath); err == nil {
+			return userBinPath, nil
+		}
+	}
+
+	// Not found
+	return "", fmt.Errorf("ffmpeg not found")
+}
+
 // installFFmpeg attempts to install FFmpeg
 func installFFmpeg() error {
-	// Detect OS
+	// Try package managers first
+	if err := tryPackageManagers(); err == nil {
+		return nil
+	}
+
+	// If package managers fail, try direct download
+	fmt.Println("Package managers not available or failed, trying direct download...")
+	return downloadFFmpegBinary()
+}
+
+// tryPackageManagers attempts to install FFmpeg using various package managers
+func tryPackageManagers() error {
 	var cmd *exec.Cmd
-	
+
 	// Try apt-get (Debian/Ubuntu)
-	fmt.Println("Attempting to install FFmpeg using apt-get...")
-	cmd = exec.Command("apt-get", "update")
-	cmd.Run() // Ignore error
-	
-	cmd = exec.Command("apt-get", "install", "-y", "ffmpeg")
-	if err := cmd.Run(); err == nil {
-		return nil
+	if _, err := exec.LookPath("apt-get"); err == nil {
+		fmt.Println("Attempting to install FFmpeg using apt-get...")
+		cmd = exec.Command("sudo", "apt-get", "update")
+		cmd.Run() // Ignore error
+
+		cmd = exec.Command("sudo", "apt-get", "install", "-y", "ffmpeg")
+		if err := cmd.Run(); err == nil {
+			return nil
+		}
 	}
-	
+
 	// Try yum (CentOS/RHEL/Fedora)
-	fmt.Println("Attempting to install FFmpeg using yum...")
-	cmd = exec.Command("yum", "install", "-y", "ffmpeg")
-	if err := cmd.Run(); err == nil {
-		return nil
+	if _, err := exec.LookPath("yum"); err == nil {
+		fmt.Println("Attempting to install FFmpeg using yum...")
+		cmd = exec.Command("sudo", "yum", "install", "-y", "ffmpeg")
+		if err := cmd.Run(); err == nil {
+			return nil
+		}
 	}
-	
+
 	// Try dnf (newer Fedora)
-	fmt.Println("Attempting to install FFmpeg using dnf...")
-	cmd = exec.Command("dnf", "install", "-y", "ffmpeg")
-	if err := cmd.Run(); err == nil {
-		return nil
+	if _, err := exec.LookPath("dnf"); err == nil {
+		fmt.Println("Attempting to install FFmpeg using dnf...")
+		cmd = exec.Command("sudo", "dnf", "install", "-y", "ffmpeg")
+		if err := cmd.Run(); err == nil {
+			return nil
+		}
 	}
-	
+
 	// Try brew (macOS)
-	fmt.Println("Attempting to install FFmpeg using brew...")
-	cmd = exec.Command("brew", "install", "ffmpeg")
-	if err := cmd.Run(); err == nil {
-		return nil
+	if _, err := exec.LookPath("brew"); err == nil {
+		fmt.Println("Attempting to install FFmpeg using brew...")
+		cmd = exec.Command("brew", "install", "ffmpeg")
+		if err := cmd.Run(); err == nil {
+			return nil
+		}
 	}
-	
+
 	// Try choco (Windows)
-	fmt.Println("Attempting to install FFmpeg using chocolatey...")
-	cmd = exec.Command("choco", "install", "ffmpeg", "-y")
-	if err := cmd.Run(); err == nil {
-		return nil
+	if _, err := exec.LookPath("choco"); err == nil {
+		fmt.Println("Attempting to install FFmpeg using chocolatey...")
+		cmd = exec.Command("choco", "install", "ffmpeg", "-y")
+		if err := cmd.Run(); err == nil {
+			return nil
+		}
 	}
-	
-	return fmt.Errorf("could not install FFmpeg automatically")
+
+	return fmt.Errorf("no suitable package manager found")
+}
+
+// downloadFFmpegBinary downloads FFmpeg binary for systems without package managers
+func downloadFFmpegBinary() error {
+	fmt.Println("Attempting to download FFmpeg binary...")
+
+	// Get user's bin directory
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return fmt.Errorf("failed to get home directory: %v", err)
+	}
+
+	userBin := filepath.Join(homeDir, "bin")
+	if err := os.MkdirAll(userBin, 0755); err != nil {
+		return fmt.Errorf("failed to create bin directory: %v", err)
+	}
+
+	// For now, provide instructions rather than attempting binary download
+	// (FFmpeg binary downloads are complex due to licensing and platform variations)
+	fmt.Printf("\n")
+	fmt.Printf("Unable to install FFmpeg automatically.\n")
+	fmt.Printf("Please install FFmpeg manually:\n")
+	fmt.Printf("\n")
+	fmt.Printf("For macOS: brew install ffmpeg\n")
+	fmt.Printf("For Ubuntu/Debian: sudo apt-get install ffmpeg\n")
+	fmt.Printf("For CentOS/RHEL: sudo yum install ffmpeg\n")
+	fmt.Printf("For Windows: Download from https://ffmpeg.org/download.html\n")
+	fmt.Printf("\n")
+	fmt.Printf("Or add FFmpeg to your PATH if already installed.\n")
+
+	return fmt.Errorf("FFmpeg installation requires manual intervention")
 }
 
 func transcribeAudio(audioPath string, apiKey string) (string, error) {
@@ -243,7 +315,7 @@ func transcribeAudio(audioPath string, apiKey string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("failed to open audio file: %v", err)
 	}
-	
+
 	client := assemblyai.NewClient(apiKey)
 	return client.TranscribeAudio(audioPath, speechModel)
 }
@@ -263,7 +335,7 @@ func saveTranscript(transcript string, source string, sourceType string) error {
 		// Generate filename based on source
 		var filename string
 		var title string
-		
+
 		if sourceType == "youtube" {
 			// Get video title from YouTube
 			var err error
@@ -288,17 +360,21 @@ func saveTranscript(transcript string, source string, sourceType string) error {
 			// For local files, use the filename without extension
 			baseName := filepath.Base(source)
 			ext := filepath.Ext(baseName)
-			title = baseName[:len(baseName)-len(ext)]
+			if len(ext) > 0 && len(baseName) > len(ext) {
+				title = baseName[:len(baseName)-len(ext)]
+			} else {
+				title = baseName
+			}
 		}
-		
+
 		// Sanitize title for use as filename
 		title = sanitizeFilename(title)
-		
+
 		// If title is empty or couldn't be determined, use a default
 		if title == "" {
 			title = "transcript"
 		}
-		
+
 		// Add simple timestamp for uniqueness (just date)
 		timestamp := time.Now().Format("20060102")
 		filename = fmt.Sprintf("%s-%s.txt", title, timestamp)
@@ -312,7 +388,7 @@ func saveTranscript(transcript string, source string, sourceType string) error {
 	}
 
 	fmt.Printf("Saved to: %s (%d chars)\n", finalOutputPath, len(transcript))
-	
+
 	return nil
 }
 
@@ -321,34 +397,34 @@ func sanitizeFilename(name string) string {
 	// Replace invalid characters with hyphens
 	reg := regexp.MustCompile(`[\\/:*?"<>|]`)
 	name = reg.ReplaceAllString(name, "-")
-	
+
 	// Replace spaces and underscores with hyphens
 	name = strings.ReplaceAll(name, " ", "-")
 	name = strings.ReplaceAll(name, "_", "-")
-	
+
 	// Replace multiple hyphens with a single hyphen
 	for strings.Contains(name, "--") {
 		name = strings.ReplaceAll(name, "--", "-")
 	}
-	
+
 	// Remove leading/trailing spaces and hyphens
 	name = strings.TrimSpace(name)
 	name = strings.Trim(name, "-")
-	
+
 	// Convert to lowercase for consistency
 	name = strings.ToLower(name)
-	
+
 	// Limit length to avoid too long filenames
 	const maxLength = 40
 	if len(name) > maxLength {
 		name = name[:maxLength]
 	}
-	
+
 	// Ensure name is not empty
 	if name == "" {
 		name = "transcript"
 	}
-	
+
 	return name
 }
 
