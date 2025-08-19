@@ -1,6 +1,54 @@
-# Sona - Audio Transcription Tool (CLI)
+# Sona - Audio Transcription Tool
 
 Turn audio files and YouTube videos into text with just a few commands. Sona uses AssemblyAI's speech recognition to give you accurate transcripts quickly and easily.
+
+## 🚀 Quick Install
+
+### One-liner Installation (Recommended)
+
+**Linux/macOS:**
+```bash
+curl -fsSL https://raw.githubusercontent.com/Harsh-2002/Sona/main/install.sh | sh
+```
+
+**With wget:**
+```bash
+wget -qO- https://raw.githubusercontent.com/Harsh-2002/Sona/main/install.sh | sh
+```
+
+### Manual Installation
+
+1. **Download the installer:**
+   ```bash
+   curl -O https://raw.githubusercontent.com/Harsh-2002/Sona/main/install.sh
+   chmod +x install.sh
+   ```
+
+2. **Run the installer:**
+   ```bash
+   ./install.sh
+   ```
+
+3. **For system-wide access (optional):**
+   ```bash
+   sudo ./install.sh
+   ```
+
+## 📥 Direct Downloads
+
+If you prefer to download manually, here are the direct links for each platform:
+
+### Linux
+- **AMD64**: [sona-linux-amd64](https://s3.srvr.site/artifact/sona/sona-linux-amd64)
+- **ARM64**: [sona-linux-arm64](https://s3.srvr.site/artifact/sona/sona-linux-arm64)
+
+### macOS
+- **Intel**: [sona-darwin-amd64](https://s3.srvr.site/artifact/sona/sona-darwin-amd64)
+- **Apple Silicon**: [sona-darwin-arm64](https://s3.srvr.site/artifact/sona/sona-darwin-arm64)
+
+### Windows
+- **AMD64**: [sona-windows-amd64.exe](https://s3.srvr.site/artifact/sona/sona-windows-amd64.exe)
+- **ARM64**: [sona-windows-arm64.exe](https://s3.srvr.site/artifact/sona/sona-windows-arm64.exe)
 
 ## ✨ What Sona Does
 
@@ -12,297 +60,170 @@ Turn audio files and YouTube videos into text with just a few commands. Sona use
 - **Secure** - Your API keys are encrypted and safe
 - **Interactive** - Step-by-step guidance when you need it
 
-## 🚀 Quick Start
+## 🔧 What You Need
 
-### 1. Download & Run
-```bash
-# Download the binary for your platform
-# Then run immediately - no installation needed!
-./sona --help
-```
+- **AssemblyAI API Key** - Get one at [assemblyai.com](https://assemblyai.com)
+- **Internet Connection** - For API calls and YouTube downloads
+- **Storage Space** - For temporary audio files and transcripts
 
-### 2. Set API Key
-```bash
-# Option A: Environment variable
-export ASSEMBLYAI_API_KEY="your_api_key_here"
-
-# Option B: Using Sona
-./sona config set api_key "your_api_key_here"
-```
-
-### 3. Start Transcribing
-```bash
-# YouTube video
-./sona transcribe "https://youtube.com/watch?v=dQw4w9WgXcQ"
-
-# Local audio file
-./sona transcribe "./audio.mp3"
-```
-
-## 📋 What You Need
-
-- **AssemblyAI API Key** - [Get a free one here](https://www.assemblyai.com/)
-- **Nothing else!** - Sona automatically installs everything else it needs
+The installer automatically handles dependencies like `yt-dlp` and `FFmpeg` for you.
 
 ## 🏗️ How Sona Works
 
-Sona is built with a clean, modular design that makes it easy to maintain and extend. The main components work together to handle everything from YouTube downloads to AI transcription.
+Sona is built with Go and uses these main parts:
 
-## 🏛️ How Sona is Built
+- **CLI Interface** - Easy commands for transcription
+- **YouTube Downloader** - Gets audio from YouTube videos
+- **Audio Converter** - Changes audio to the right format
+- **AssemblyAI Client** - Sends audio to AI for transcription
+- **Configuration Manager** - Keeps your settings safe
 
-Sona is designed to be simple, reliable, and easy to use. Here's how it works under the hood:
+## 🚀 How Sona is Built
 
-### Main Components
+- **Go 1.24+** - Fast, reliable programming language
+- **Cobra** - Professional command-line interface
+- **Viper** - Smart configuration management
+- **AssemblyAI API** - Industry-leading speech recognition
 
-- **AssemblyAI Client** - Handles communication with the speech recognition service
-- **Configuration Manager** - Stores your API key securely and remembers your preferences
-- **Transcription Engine** - Coordinates the entire process from start to finish
-- **YouTube Downloader** - Automatically downloads and processes YouTube videos
+## 🔨 Building from Source
 
-### How It Works
-
-1. **You run a command** - Tell Sona what to transcribe
-2. **Sona figures out what to do** - YouTube video or local file?
-3. **Downloads/processes audio** - Gets the audio ready for transcription
-4. **Sends to AssemblyAI** - Uses their AI to convert speech to text
-5. **Saves your transcript** - Puts the text where you want it
-
-### Smart Features
-
-- **Auto-installation** - Sona installs missing tools automatically
-- **Error handling** - Clear messages when something goes wrong
-- **Secure storage** - Your API keys are encrypted and safe
-- **Memory management** - Handles large files efficiently
-
-## 🛠️ Building from Source
-
-If you want to build Sona yourself, you'll need Go 1.22 or later.
+If you want to build Sona yourself:
 
 ```bash
-# Get the code
-git clone <repository-url>
-cd sona-ai
-
-# Build Sona
-go build -o build/sona cmd/sona/main.go
-
-# Try it out
-./build/sona --help
+git clone https://github.com/Harsh-2002/Sona.git
+cd Sona
+go build -o sona cmd/sona/main.go
 ```
 
 ## 📖 How to Use Sona
 
+### Basic Commands
+
+**Transcribe a local audio file:**
 ```bash
-# Get help
-sona --help
-
-# Transcribe a YouTube video
-sona transcribe "https://youtube.com/watch?v=..."
-
-# Transcribe an audio file
-sona transcribe "./audio.mp3"
-
-# Save to a specific location
-sona transcribe "video.mp4" --output transcript.txt
-
-# Use a different AI model
-sona transcribe "audio.mp3" --model best
+sona transcribe audio.mp3
 ```
 
-## 🚀 Usage Examples
-
-### Quick Start
-
-#### 1. Set API Key
+**Transcribe a YouTube video:**
 ```bash
-# Set your AssemblyAI API key
-export ASSEMBLYAI_API_KEY="your_api_key_here"
+sona transcribe https://youtube.com/watch?v=VIDEO_ID
 ```
 
-#### 2. Transcribe YouTube Video
+**Start interactive mode:**
 ```bash
-# Use Sona to transcribe YouTube video
-./sona transcribe "https://youtube.com/watch?v=dQw4w9WgXcQ"
+sona interactive
 ```
 
-#### 3. Transcribe Local Audio File
+**Manage your settings:**
 ```bash
-# Use Sona to transcribe local audio
-./sona transcribe "./meeting_recording.mp3"
-```
-
-### Advanced Usage
-
-#### Custom Output Path
-```bash
-./sona transcribe "video.mp4" --output ./my_transcript.txt
-```
-
-#### Different Speech Model
-```bash
-# Use best quality model
-./sona transcribe "audio.mp3" --model best
-
-# Use fastest model
-./sona transcribe "audio.mp3" --model nano
-```
-
-#### Configuration Management
-```bash
-# Show current config
-./sona config show
-
-# Set API key via config
-./sona config set api_key "your_new_key_here"
-```
-
-### Output Examples
-
-#### YouTube Video Output
-```
-🎥 Detected YouTube URL, downloading audio...
-📥 Downloading audio from YouTube using pure Go...
-🎬 Video: Rick Astley - Never Gonna Give You Up
-⏱️  Duration: 3m 33s
-🎵 Audio format: AUDIO_QUALITY_MEDIUM
-⬇️  Downloading audio stream...
-✅ Audio download completed successfully!
-✅ Downloaded audio to: /tmp/sona-12345/audio.mp4
-🔊 Starting transcription with AssemblyAI...
-📤 Audio file uploaded successfully
-📝 Transcription submitted, waiting for completion...
-⏳ Status: queued, waiting...
-⏳ Status: processing, waiting...
-✅ Transcription completed successfully!
-✅ Transcript saved to: /home/user/transcripts/youtube_dQw4w9WgXcQ.txt
-📝 Transcript length: 1234 characters
-```
-
-#### Local File Output
-```
-🎵 Processing local audio file...
-🔊 Starting transcription with AssemblyAI...
-📤 Audio file uploaded successfully
-📝 Transcription submitted, waiting for completion...
-⏳ Status: queued, waiting...
-⏳ Status: processing, waiting...
-✅ Transcription completed successfully!
-✅ Transcript saved to: /home/user/transcripts/meeting_recording_transcript.txt
-📝 Transcript length: 5678 characters
-```
-
-### Configuration
-
-```bash
-# Show current config
-sona config show
-
-# Set API key
-sona config set api_key "your_key_here"
+sona config
 ```
 
 ### Command Options
 
-| Flag | Description | Default |
-|------|-------------|---------|
-| `-o, --output` | Custom output file path | Auto-generated |
-| `-m, --model` | Speech model (slam-1, best, nano) | slam-1 |
+- `--output` - Save transcript to specific file
+- `--model` - Choose AI model (default: best)
+- `--language` - Set audio language (auto-detected by default)
 
-## 🎯 AI Models
+## 🤖 AI Models
 
-Sona uses different AI models depending on your needs:
+Sona uses AssemblyAI's latest models:
 
-- **`slam-1`** (default) - Best accuracy, great for important content
-- **`best`** - High accuracy, good for most things
-- **`nano`** - Fastest, good when you need speed
+- **Best** - Highest accuracy (default)
+- **Nano** - Fastest processing
+- **Base** - Balanced speed and accuracy
 
 ## 📁 Where Transcripts Go
 
-Sona automatically saves your transcripts to `~/sona/` with smart names like:
-- `video-title-20241201.txt` for YouTube videos
-- `filename-20241201.txt` for audio files
+By default, transcripts are saved to:
+- **Current directory** - `./transcript.txt`
+- **Custom path** - Use `--output` flag
+- **Smart naming** - Based on original filename
 
-Use `--output` to save somewhere else.
+## ⚙️ Settings
 
-## 🔧 Settings
+Sona stores your settings in `~/.sona/config.toml`:
 
-Sona remembers your preferences in `~/.sona/config.toml`. You can:
-
-- Set your API key once and forget about it
-- Choose where to save transcripts by default
-- Remember your last used settings
+- **API Key** - Your AssemblyAI access key
+- **Default Model** - Preferred AI model
+- **Output Directory** - Where to save transcripts
+- **Language** - Default audio language
 
 ## 🔒 Keeping Your Data Safe
 
-Sona encrypts your API keys automatically, so they're safe even if someone gets access to your computer. The encryption is tied to your specific system.
+- **API Keys** - Encrypted with AES-256-GCM
+- **Local Storage** - Files stay on your device
+- **No Data Collection** - Sona doesn't track your usage
+- **Secure API** - HTTPS for all communications
 
-## 🐛 When Things Go Wrong
+## 🚨 When Things Go Wrong
 
 ### Common Problems
 
 **"API key not found"**
-```bash
-# Set your API key
-export ASSEMBLYAI_API_KEY="your_key_here"
-# or use Sona's config
-sona config set api_key "your_key_here"
-```
+- Run `sona config` to set your key
+- Check environment variable `ASSEMBLYAI_API_KEY`
 
-**YouTube won't download**
-- Check your internet connection
-- Make sure the video isn't private
-- Sona will install the tools it needs automatically
+**"yt-dlp not found"**
+- Sona will try to install it automatically
+- Manual install: `pip install yt-dlp`
 
-**Audio won't convert**
-- Sona tries to convert most formats to MP3
-- If it fails, try converting the file yourself first
-- Some protected files can't be converted
+**"FFmpeg not found"**
+- Sona will try to install it automatically
+- Manual install: `brew install ffmpeg` (macOS) or `apt install ffmpeg` (Linux)
 
-**Transcription fails**
-- Check your API key is correct
-- Make sure the audio file isn't corrupted
-- Try a smaller file if it's very large
+**"Permission denied"**
+- Run installer with `sudo ./install.sh`
+- Check file permissions
 
-### What Sona Can Handle
-- **Audio**: MP3, WAV, M4A, FLAC, OGG
-- **Video**: MP4, AVI, MOV (audio will be extracted)
-- **Size**: Up to 1GB
-- **Length**: At least 160ms
+### Getting Help
+
+- **Check logs** - Look for error messages
+- **Verify API key** - Test with `sona config`
+- **Check internet** - Ensure connectivity
+- **Update Sona** - Get the latest version
+
+## 🔄 Automated Builds
+
+Sona automatically builds and uploads new binaries on every push to `main` or `master` branches. The GitHub Actions workflow:
+
+- **Builds for all platforms** - Linux, macOS, Windows (AMD64/ARM64)
+- **Uploads to MinIO** - Public bucket at `https://s3.srvr.site/artifact/sona/`
+- **No manual releases** - Everything happens automatically
+- **Always up-to-date** - Latest code = latest binaries
+
+**Note**: The `sona` folder in the MinIO bucket is created automatically if it doesn't exist.
 
 ## 🚀 What's Coming Next
 
-We're planning to add:
-
-- **Batch processing** - Handle multiple files at once
-- **More output formats** - JSON, SRT, VTT files
-- **Progress bars** - See how things are going
-- **Auto-updates** - Sona updates itself automatically
-
-## 🚀 Automated Builds
-
-Sona automatically builds and uploads on every push to main/master:
-
-1. **Push to main** - Triggers GitHub Actions
-2. **Build all platforms** - Linux, macOS, Windows (AMD64/ARM64)
-3. **Upload new binaries** - Fresh builds to your S3 bucket (overwrites old ones)
-
-**Note**: Create the `sona` folder manually in your MinIO `artifact` bucket before first use.
+- **More AI Models** - Additional speech recognition options
+- **Batch Processing** - Handle multiple files at once
+- **Export Formats** - JSON, SRT, VTT support
+- **Real-time Transcription** - Live audio processing
+- **Cloud Storage** - Direct upload to cloud services
 
 ## 🤝 Want to Help?
 
-1. Fork the repository
-2. Make your changes
-3. Submit a pull request
+Contributions are welcome! Here's how:
 
-We welcome contributions!
-
-## 📄 License
-
-This project is licensed under the MIT License.
+1. **Fork the repository**
+2. **Create a feature branch**
+3. **Make your changes**
+4. **Test thoroughly**
+5. **Submit a pull request**
 
 ## 🙏 Thanks To
 
-- [AssemblyAI](https://www.assemblyai.com/) for the speech recognition
-- [yt-dlp](https://github.com/yt-dlp/yt-dlp) for YouTube downloads
-- [Cobra](https://github.com/spf13/cobra) for the command-line interface
-- [Viper](https://github.com/spf13/viper) for configuration management
+- **AssemblyAI** - For amazing speech recognition
+- **Go Community** - For excellent tools and libraries
+- **Open Source** - For making this possible
+
+## ❓ Need Help?
+
+- **GitHub Issues** - Report bugs and request features
+- **Documentation** - Check this README first
+- **Community** - Join discussions and get help
+
+---
+
+**Made with ❤️ for easy audio transcription**
