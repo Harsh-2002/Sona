@@ -163,11 +163,11 @@ Sona stores your settings in `~/.sona/config.toml`:
 
 **"yt-dlp not found"**
 - Sona will try to install it automatically
-- Manual install: `pip install yt-dlp`
+- Manual install: Dependencies are automatically installed when needed
 
 **"FFmpeg not found"**
 - Sona will try to install it automatically
-- Manual install: `brew install ffmpeg` (macOS) or `apt install ffmpeg` (Linux)
+- Manual install: Dependencies are automatically installed when needed
 
 **"Permission denied"**
 - Run installer with `sudo ./install.sh`

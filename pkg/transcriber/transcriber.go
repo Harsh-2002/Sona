@@ -1,6 +1,7 @@
 package transcriber
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"os/exec"
@@ -44,6 +45,12 @@ Examples:
 		apiKey := config.GetAPIKey()
 		fmt.Println("API key retrieved successfully")
 
+		// Check and install dependencies
+		if err := checkAndInstallDependencies(); err != nil {
+			fmt.Printf("Error: Dependency check failed: %v\n", err)
+			os.Exit(1)
+		}
+
 		// Determine source type and process
 		if youtube.IsYouTubeURL(source) {
 			fmt.Println("Processing YouTube URL...")
@@ -66,6 +73,38 @@ Examples:
 func init() {
 	TranscribeCmd.Flags().StringVarP(&outputPath, "output", "o", "", "Output file path (default: auto-generated)")
 	TranscribeCmd.Flags().StringVarP(&speechModel, "model", "m", "slam-1", "Speech model to use (slam-1, best, nano)")
+}
+
+// checkAndInstallDependencies ensures both yt-dlp and ffmpeg are available
+func checkAndInstallDependencies() error {
+	fmt.Println("🔍 Checking dependencies...")
+
+	// Check yt-dlp
+	ytdlpPath, err := youtube.FindBinary("yt-dlp")
+	if err != nil {
+		fmt.Println("📥 yt-dlp not found, installing...")
+		if err := youtube.InstallYtDlp(); err != nil {
+			return fmt.Errorf("failed to install yt-dlp: %v", err)
+		}
+		fmt.Println("✅ yt-dlp installed successfully")
+	} else {
+		fmt.Printf("✅ yt-dlp found at: %s\n", ytdlpPath)
+	}
+
+	// Check ffmpeg
+	ffmpegPath, err := FindBinary("ffmpeg")
+	if err == nil {
+		fmt.Printf("✅ FFmpeg found at: %s\n", ffmpegPath)
+	} else {
+		fmt.Println("📥 FFmpeg not found, installing...")
+		if err := installFFmpeg(); err != nil {
+			return fmt.Errorf("failed to install FFmpeg: %v", err)
+		}
+		fmt.Println("✅ FFmpeg installed successfully")
+	}
+
+	fmt.Println("🎯 All dependencies are ready!")
+	return nil
 }
 
 func processYouTubeVideo(url string, apiKey string) error {
@@ -219,13 +258,7 @@ func installFFmpeg() error {
 	return downloadFFmpegBinary()
 }
 
-// tryPackageManagers attempts to install FFmpeg using various package managers (DEPRECATED)
-func tryPackageManagers() error {
-	// This function is deprecated - direct binary download is preferred
-	return fmt.Errorf("package manager installation deprecated - using direct binary download")
-}
-
-// downloadFFmpegBinary downloads FFmpeg binary for systems without package managers
+// downloadFFmpegBinary downloads FFmpeg binary directly for the current platform
 func downloadFFmpegBinary() error {
 	fmt.Println("Attempting to download FFmpeg binary...")
 
@@ -277,11 +310,30 @@ func downloadFFmpegBinary() error {
 
 	// Download the binary
 	if err := downloadCmd.Run(); err != nil {
-		return fmt.Errorf("failed to download FFmpeg: %v", err)
+		// For macOS, try fallback URL if primary fails
+		if platform == "macos" && strings.Contains(downloadURL, "evermeet.cx") {
+			fmt.Println("Primary download failed, trying fallback URL...")
+			fallbackURL := "https://evermeet.cx/ffmpeg/ffmpeg-120751-g1d06e8ddcd.zip"
+			fallbackFilename := "ffmpeg-macos-fallback.zip"
+
+			if _, err := exec.LookPath("curl"); err == nil {
+				downloadCmd = exec.Command("curl", "-L", "-o", fallbackFilename, fallbackURL)
+			} else {
+				downloadCmd = exec.Command("wget", "-O", fallbackFilename, fallbackURL)
+			}
+
+			fmt.Printf("Downloading FFmpeg binary from fallback: %s\n", fallbackURL)
+			if err := downloadCmd.Run(); err != nil {
+				return fmt.Errorf("both primary and fallback downloads failed: %v", err)
+			}
+			filename = fallbackFilename
+		} else {
+			return fmt.Errorf("failed to download FFmpeg: %v", err)
+		}
 	}
 
 	// Extract if it's a compressed file
-	if strings.HasSuffix(filename, ".tar.gz") || strings.HasSuffix(filename, ".tar.xz") {
+	if strings.HasSuffix(filename, ".tar.gz") || strings.HasSuffix(filename, ".tar.xz") || strings.HasSuffix(filename, ".zip") {
 		if err := extractFFmpegArchive(filename); err != nil {
 			return fmt.Errorf("failed to extract FFmpeg archive: %v", err)
 		}
@@ -333,27 +385,28 @@ func getArchitecture() string {
 
 // getFFmpegDownloadURL returns the appropriate download URL and filename for the platform
 func getFFmpegDownloadURL(platform, arch string) (string, string) {
-	// Use static builds from BtbN's repository (more reliable than official builds)
-	baseURL := "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest"
-
 	switch platform {
 	case "macos":
 		if arch == "x86_64" {
-			return baseURL + "/ffmpeg-master-latest-macos64-gpl.tar.xz", "ffmpeg-macos64.tar.xz"
+			// Use evermeet.cx for macOS Intel (more reliable)
+			return "https://evermeet.cx/ffmpeg/ffmpeg-120751-g1d06e8ddcd.zip", "ffmpeg-macos-intel.zip"
 		} else if arch == "aarch64" {
-			return baseURL + "/ffmpeg-master-latest-macosarm64-gpl.tar.xz", "ffmpeg-macosarm64.tar.xz"
+			// Use evermeet.cx for macOS ARM64 (more reliable)
+			return "https://evermeet.cx/ffmpeg/ffmpeg-120751-g1d06e8ddcd.zip", "ffmpeg-macos-arm64.zip"
 		}
 	case "linux":
 		if arch == "x86_64" {
-			return baseURL + "/ffmpeg-master-latest-linux64-gpl.tar.xz", "ffmpeg-linux64.tar.xz"
+			// Use static builds from BtbN's repository for Linux
+			return "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-linux64-gpl.tar.xz", "ffmpeg-linux64.tar.xz"
 		} else if arch == "aarch64" {
-			return baseURL + "/ffmpeg-master-latest-linuxarm64-gpl.tar.xz", "ffmpeg-linuxarm64.tar.xz"
+			return "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-linuxarm64-gpl.tar.xz", "ffmpeg-linuxarm64.tar.xz"
 		}
 	case "windows":
 		if arch == "x86_64" {
-			return baseURL + "/ffmpeg-master-latest-win64-gpl.zip", "ffmpeg-win64.zip"
+			// Use static builds from BtbN's repository for Windows
+			return "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip", "ffmpeg-win64.zip"
 		} else if arch == "aarch64" {
-			return baseURL + "/ffmpeg-master-latest-winarm64-gpl.zip", "ffmpeg-winarm64.zip"
+			return "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-winarm64-gpl.zip", "ffmpeg-winarm64.zip"
 		}
 	}
 
@@ -371,13 +424,17 @@ func extractFFmpegArchive(filename string) error {
 	} else if strings.HasSuffix(filename, ".tar.xz") {
 		cmd = exec.Command("tar", "-xf", filename)
 	} else if strings.HasSuffix(filename, ".zip") {
-		cmd = exec.Command("unzip", filename)
+		cmd = exec.Command("unzip", "-q", filename)
 	} else {
 		return fmt.Errorf("unsupported archive format: %s", filename)
 	}
 
+	// Capture stderr for better error reporting
+	var stderr bytes.Buffer
+	cmd.Stderr = &stderr
+
 	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("failed to extract archive: %v", err)
+		return fmt.Errorf("failed to extract archive: %v\nStderr: %s", err, stderr.String())
 	}
 
 	// Find the ffmpeg binary in the extracted directory
@@ -387,6 +444,7 @@ func extractFFmpegArchive(filename string) error {
 	}
 
 	// Look for the ffmpeg binary
+	var ffmpegFound bool
 	for _, entry := range entries {
 		if entry.IsDir() && strings.Contains(entry.Name(), "ffmpeg") {
 			// Check if there's a bin subdirectory
@@ -397,16 +455,41 @@ func extractFFmpegArchive(filename string) error {
 				if err := os.Rename(binPath, finalPath); err != nil {
 					return fmt.Errorf("failed to move FFmpeg binary: %v", err)
 				}
-
-				// Clean up extracted files
-				os.RemoveAll(entry.Name())
-				os.Remove(filename)
-				return nil
+				ffmpegFound = true
+				break
 			}
 		}
 	}
 
-	return fmt.Errorf("could not find FFmpeg binary in extracted archive")
+	// For macOS ZIP files, the binary might be directly in the archive
+	if !ffmpegFound {
+		for _, entry := range entries {
+			if !entry.IsDir() && entry.Name() == "ffmpeg" {
+				// Binary is already in the right place
+				ffmpegFound = true
+				break
+			}
+		}
+	}
+
+	if !ffmpegFound {
+		// List what we found for debugging
+		fmt.Println("Debug: Found entries after extraction:")
+		for _, entry := range entries {
+			fmt.Printf("  - %s (dir: %t)\n", entry.Name(), entry.IsDir())
+		}
+		return fmt.Errorf("could not find FFmpeg binary in extracted archive")
+	}
+
+	// Clean up extracted files and archive
+	for _, entry := range entries {
+		if entry.IsDir() {
+			os.RemoveAll(entry.Name())
+		}
+	}
+	os.Remove(filename)
+
+	return nil
 }
 
 // addToPath attempts to add the bin directory to PATH for the current session

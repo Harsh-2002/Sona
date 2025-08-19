@@ -295,7 +295,7 @@ NOTES:
     - Supports AMD64 and ARM64 architectures
     - Downloads from official Sona releases
 
-For more information, visit: https://github.com/root/sona-ai
+For more information, visit: https://github.com/Harsh-2002/Sona
 EOF
 }
 

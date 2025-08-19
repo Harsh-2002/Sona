@@ -22,7 +22,7 @@ func DownloadAudio(url string, outputDir string) (string, error) {
 	if err != nil {
 		// Try to install yt-dlp
 		fmt.Println("yt-dlp not found, attempting to install...")
-		if err := installYtDlp(); err != nil {
+		if err := InstallYtDlp(); err != nil {
 			return "", fmt.Errorf("failed to install yt-dlp: %v", err)
 		}
 
@@ -134,17 +134,11 @@ func FindBinary(binaryName string) (string, error) {
 	return "", fmt.Errorf("%s not found", binaryName)
 }
 
-// installYtDlp attempts to install yt-dlp
-func installYtDlp() error {
+// InstallYtDlp attempts to install yt-dlp
+func InstallYtDlp() error {
 	// Direct binary download is more reliable across platforms
 	fmt.Println("Downloading yt-dlp binary directly...")
 	return downloadYtDlpBinary()
-}
-
-// tryPipInstall attempts to install yt-dlp using pip (DEPRECATED)
-func tryPipInstall() error {
-	// This function is deprecated - direct binary download is preferred
-	return fmt.Errorf("pip installation deprecated - using direct binary download")
 }
 
 // downloadYtDlpBinary downloads yt-dlp binary directly for the current platform
@@ -320,8 +314,20 @@ func getVideoInfo(url string) (string, string, error) {
 	// Check if yt-dlp is installed
 	ytdlpPath, err := FindBinary("yt-dlp")
 	if err != nil {
-		return "", "", fmt.Errorf("yt-dlp not found: %v", err)
+		// Try to install yt-dlp
+		fmt.Println("yt-dlp not found, attempting to install...")
+		if err := InstallYtDlp(); err != nil {
+			return "", "", fmt.Errorf("failed to install yt-dlp: %v", err)
+		}
+
+		// Check again
+		ytdlpPath, err = FindBinary("yt-dlp")
+		if err != nil {
+			return "", "", fmt.Errorf("yt-dlp not found after installation attempt: %v", err)
+		}
 	}
+
+	fmt.Printf("Using yt-dlp: %s\n", ytdlpPath)
 
 	// Get video info using yt-dlp
 	cmd := exec.CommandContext(ctx, ytdlpPath,
