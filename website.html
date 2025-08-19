@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transcribe audio/YouTube videos to text, fast and simple all from your CLI | Sona</title>
+    <meta name="description" content="Sona is a powerful AI-powered audio transcription tool that converts audio files and YouTube videos to text using AssemblyAI. Download for Linux, macOS, and Windows.">
+    <meta name="keywords" content="audio transcription, speech to text, YouTube transcription, AI transcription, AssemblyAI, audio converter, CLI tool">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>❇️</text></svg>">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f7f7f7;
+            font-size: 16px;
+        }
+
+        .container {
+            max-width: 1140px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Hero */
+        .hero {
+            padding: 5rem 0;
+            text-align: center;
+            background-color: #fff;
+            border-bottom: 1px solid #eaeaea;
+            -webkit-box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            -moz-box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .hero h1 {
+            font-size: 2.8rem;
+            font-weight: 600;
+            margin-bottom: 1.2rem;
+            color: #222;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            color: #666;
+            margin-bottom: 2.5rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: #000;
+            color: #fff;
+            padding: 0.9rem 2rem;
+            text-decoration: none;
+            font-weight: 500;
+            border: 1px solid #000;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-size: 1.1rem;
+            -webkit-transition: all 0.3s ease;
+            -moz-transition: all 0.3s ease;
+            -o-transition: all 0.3s ease;
+        }
+
+        .cta-button:hover {
+            background: #fff;
+            color: #000;
+            transform: translateY(-2px);
+            -webkit-transform: translateY(-2px);
+            -moz-transform: translateY(-2px);
+            -ms-transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            -webkit-box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            -moz-box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Sections */
+        .section {
+            padding: 5rem 0;
+            background-color: #fff;
+            margin: 0;
+            border-radius: 0;
+            box-shadow: none;
+        }
+
+        .section:first-of-type {
+            margin-top: 0;
+        }
+
+        .section:not(:first-of-type) {
+            margin-top: 2rem;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .section h2 {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #222;
+            position: relative;
+            display: inline-block;
+        }
+
+        .section h2:after {
+            content: '';
+            position: absolute;
+            width: 60px;
+            height: 3px;
+            background: #000;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .section p {
+            color: #666;
+            margin-bottom: 1.5rem;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+            text-align: center;
+        }
+
+        /* Card Layouts */
+        .card-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            justify-content: center;
+            margin: 0;
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #eaeaea;
+            flex: 1 1 300px;
+            max-width: 350px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            -webkit-box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            -moz-box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            -webkit-transition: transform 0.2s ease, box-shadow 0.2s ease;
+            -moz-transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            -webkit-transform: translateY(-2px);
+            -moz-transform: translateY(-2px);
+            -ms-transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            -webkit-box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            -moz-box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-content {
+            padding: 1.8rem;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card h3 {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #222;
+        }
+
+        .card p {
+            color: #666;
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+            text-align: left;
+            flex-grow: 1;
+        }
+
+        /* Downloads */
+        .download-card {
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .download-card h4 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.8rem;
+            color: #222;
+        }
+
+        .download-card p {
+            font-size: 0.95rem;
+            color: #666;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .download-links {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .download-link {
+            display: inline-block;
+            background: #000;
+            color: #fff;
+            padding: 0.6rem 1.2rem;
+            text-decoration: none;
+            font-size: 0.95rem;
+            font-weight: 500;
+            border: 1px solid #000;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            -webkit-transition: all 0.2s ease;
+            -moz-transition: all 0.2s ease;
+            min-width: 120px;
+        }
+
+        .download-link:hover {
+            background: #fff;
+            color: #000;
+            -webkit-transform: translateY(-1px);
+            -moz-transform: translateY(-1px);
+            -ms-transform: translateY(-1px);
+            transform: translateY(-1px);
+        }
+
+        /* Code */
+        .code-container {
+            position: relative;
+            margin: 1.5rem auto;
+            max-width: 900px;
+        }
+
+        .usage-section .code-container {
+            max-width: 600px;
+        }
+
+        .code {
+            background: #f5f5f5;
+            padding: 1.2rem;
+            border: 1px solid #e0e0e0;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.95rem;
+            overflow-x: auto;
+            border-radius: 8px;
+            padding-right: 3.5rem;
+        }
+
+        .code code {
+            color: #333;
+        }
+
+        .copy-button {
+            position: absolute;
+            top: 50%;
+            right: 0.8rem;
+            transform: translateY(-50%);
+            -webkit-transform: translateY(-50%);
+            -moz-transform: translateY(-50%);
+            -ms-transform: translateY(-50%);
+            background: #000;
+            color: #fff;
+            border: none;
+            padding: 0.4rem 0.8rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s ease;
+            -webkit-transition: all 0.2s ease;
+            -moz-transition: all 0.2s ease;
+        }
+
+        .copy-button:hover {
+            background: #333;
+            -webkit-transform: translateY(-50%) scale(1.05);
+            -moz-transform: translateY(-50%) scale(1.05);
+            -ms-transform: translateY(-50%) scale(1.05);
+            transform: translateY(-50%) scale(1.05);
+        }
+
+        .copy-button.copied {
+            background: #28a745;
+        }
+
+        /* Steps */
+        .steps {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .step {
+            padding: 1.8rem;
+            border: 1px solid #eaeaea;
+            background: #fafafa;
+            border-radius: 12px;
+        }
+
+        .step h4 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #222;
+            display: flex;
+            align-items: center;
+        }
+
+        .step h4:before {
+            content: attr(data-number);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            background: #000;
+            color: #fff;
+            border-radius: 50%;
+            margin-right: 12px;
+            font-size: 0.9rem;
+        }
+
+        /* Footer */
+        footer {
+            padding: 3rem 0;
+            background: #f2f2f2;
+            text-align: center;
+            color: #666;
+            margin-top: 2rem;
+        }
+
+        .footer-links {
+            margin-bottom: 1.5rem;
+        }
+
+        .footer-links a {
+            color: #444;
+            text-decoration: none;
+            margin: 0 1rem;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .footer-links a:hover {
+            color: #000;
+        }
+
+        .footer-love {
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 1rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.2rem;
+            }
+            
+            .hero p {
+                font-size: 1.1rem;
+            }
+            
+            .section {
+                padding: 3rem 0;
+            }
+            
+            .section h2 {
+                font-size: 1.8rem;
+            }
+            
+            .card {
+                flex: 0 0 100%;
+                max-width: 100%;
+            }
+            
+            .download-links {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .download-link {
+                width: 100%;
+                max-width: 200px;
+            }
+
+            .code-container {
+                max-width: 95%;
+                margin: 1rem auto;
+            }
+
+            .usage-section .code-container {
+                max-width: 95%;
+            }
+
+            .steps {
+                max-width: 95%;
+            }
+
+            .section-header {
+                margin-bottom: 2rem;
+            }
+        }
+
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .card {
+                flex: 0 0 calc(50% - 1rem);
+                max-width: calc(50% - 1rem);
+            }
+
+            .code-container {
+                max-width: 85%;
+            }
+
+            .usage-section .code-container {
+                max-width: 70%;
+            }
+        }
+
+        @media (min-width: 1025px) {
+            .code-container {
+                max-width: 900px;
+            }
+
+            .usage-section .code-container {
+                max-width: 600px;
+            }
+        }
+
+        /* Cross-browser compatibility */
+        .hero {
+            padding: 5rem 0;
+            text-align: center;
+            background-color: #fff;
+            border-bottom: 1px solid #eaeaea;
+            -webkit-box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            -moz-box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: #000;
+            color: #fff;
+            padding: 0.9rem 2rem;
+            text-decoration: none;
+            font-weight: 500;
+            border: 1px solid #000;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-size: 1.1rem;
+            -webkit-transition: all 0.3s ease;
+            -moz-transition: all 0.3s ease;
+            -o-transition: all 0.3s ease;
+        }
+
+        .cta-button:hover {
+            background: #fff;
+            color: #000;
+            transform: translateY(-2px);
+            -webkit-transform: translateY(-2px);
+            -moz-transform: translateY(-2px);
+            -ms-transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            -webkit-box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            -moz-box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #eaeaea;
+            flex: 1 1 300px;
+            max-width: 350px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            -webkit-box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            -moz-box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            -webkit-transition: transform 0.2s ease, box-shadow 0.2s ease;
+            -moz-transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            -webkit-transform: translateY(-2px);
+            -moz-transform: translateY(-2px);
+            -ms-transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            -webkit-box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            -moz-box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .download-link {
+            display: inline-block;
+            background: #000;
+            color: #fff;
+            padding: 0.6rem 1.2rem;
+            text-decoration: none;
+            font-size: 0.95rem;
+            font-weight: 500;
+            border: 1px solid #000;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            -webkit-transition: all 0.2s ease;
+            -moz-transition: all 0.2s ease;
+            min-width: 120px;
+        }
+
+        .download-link:hover {
+            background: #fff;
+            color: #000;
+            -webkit-transform: translateY(-1px);
+            -moz-transform: translateY(-1px);
+            -ms-transform: translateY(-1px);
+            transform: translateY(-1px);
+        }
+
+        .copy-button {
+            position: absolute;
+            top: 50%;
+            right: 0.8rem;
+            transform: translateY(-50%);
+            -webkit-transform: translateY(-50%);
+            -moz-transform: translateY(-50%);
+            -ms-transform: translateY(-50%);
+            background: #000;
+            color: #fff;
+            border: none;
+            padding: 0.4rem 0.8rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s ease;
+            -webkit-transition: all 0.2s ease;
+            -moz-transition: all 0.2s ease;
+        }
+
+        .copy-button:hover {
+            background: #333;
+            -webkit-transform: translateY(-50%) scale(1.05);
+            -moz-transform: translateY(-50%) scale(1.05);
+            -ms-transform: translateY(-50%) scale(1.05);
+            transform: translateY(-50%) scale(1.05);
+        }
+
+        .copy-button.copied {
+            background: #28a745;
+        }
+
+        /* Steps */
+        .steps {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .step {
+            padding: 1.8rem;
+            border: 1px solid #eaeaea;
+            background: #fafafa;
+            border-radius: 12px;
+        }
+
+        .step h4 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #222;
+            display: flex;
+            align-items: center;
+        }
+
+        .step h4:before {
+            content: attr(data-number);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            background: #000;
+            color: #fff;
+            border-radius: 50%;
+            margin-right: 12px;
+            font-size: 0.9rem;
+        }
+
+        /* Footer */
+        footer {
+            padding: 3rem 0;
+            background: #f2f2f2;
+            text-align: center;
+            color: #666;
+            margin-top: 2rem;
+        }
+
+        .footer-links {
+            margin-bottom: 1.5rem;
+        }
+
+        .footer-links a {
+            color: #444;
+            text-decoration: none;
+            margin: 0 1rem;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .footer-links a:hover {
+            color: #000;
+        }
+
+        .footer-love {
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 1rem;
+        }
+
+        /* Mobile-first responsive design */
+        @media (max-width: 480px) {
+            .container {
+                padding: 0 15px;
+            }
+
+            .hero {
+                padding: 3rem 0;
+            }
+
+            .hero h1 {
+                font-size: 1.8rem;
+            }
+
+            .hero p {
+                font-size: 1rem;
+                max-width: 100%;
+            }
+
+            .section {
+                padding: 2rem 0;
+            }
+
+            .section h2 {
+                font-size: 1.6rem;
+            }
+
+            .card-grid {
+                gap: 1rem;
+            }
+
+            .card {
+                flex: 0 0 100%;
+                max-width: 100%;
+            }
+
+            .download-card {
+                padding: 1.5rem;
+            }
+
+            .download-links {
+                flex-direction: column;
+                gap: 0.8rem;
+            }
+
+            .download-link {
+                width: 100%;
+                max-width: 180px;
+                padding: 0.7rem 1rem;
+            }
+
+            .code-container {
+                max-width: 100%;
+                margin: 1rem 0;
+            }
+
+            .code {
+                padding: 1rem;
+                font-size: 0.85rem;
+                padding-right: 3rem;
+            }
+
+            .copy-button {
+                padding: 0.3rem 0.6rem;
+                font-size: 0.8rem;
+            }
+        }
+
+        /* Tablet landscape */
+        @media (min-width: 481px) and (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.4rem;
+            }
+
+            .card {
+                flex: 0 0 calc(50% - 0.75rem);
+                max-width: calc(50% - 0.75rem);
+            }
+
+            .download-card {
+                flex: 0 0 100%;
+                max-width: 100%;
+            }
+        }
+
+        /* High DPI displays */
+        @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+            .card {
+                border-width: 0.5px;
+            }
+
+            .section {
+                border-width: 0.5px;
+            }
+        }
+
+        /* Print styles */
+        @media print {
+            .copy-button,
+            .cta-button,
+            .download-link {
+                display: none;
+            }
+
+            .card {
+                break-inside: avoid;
+                box-shadow: none;
+                border: 1px solid #ccc;
+            }
+
+            .section {
+                break-inside: avoid;
+                margin: 1rem 0;
+                padding: 1rem 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Hero -->
+    <section class="hero">
+        <div class="container">
+            <h1>Sona – Transcribe Audio from Your CLI</h1>
+            <p>Turn audio and YouTube links into text, right in your terminal.</p>
+            <a href="#download" class="cta-button">Download Now</a>
+        </div>
+    </section>
+
+    <!-- Features -->
+    <section class="section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Features</h2>
+                <p>Everything you need for high-quality audio transcription</p>
+            </div>
+            <div class="card-grid">
+                <div class="card">
+                    <div class="card-content">
+                        <h3>Audio Files</h3>
+                        <p>Transcribe MP3, WAV, M4A, FLAC, and other audio formats with high accuracy</p>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-content">
+                        <h3>YouTube Videos</h3>
+                        <p>Download and transcribe YouTube videos automatically using yt-dlp integration</p>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-content">
+                        <h3>AI Powered</h3>
+                        <p>Uses AssemblyAI's latest speech recognition models for best transcription quality</p>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-content">
+                        <h3>Command Line</h3>
+                        <p>Fast and efficient CLI interface for batch processing and automation</p>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-content">
+                        <h3>Interactive Mode</h3>
+                        <p>Guided step-by-step experience with remembered settings and preferences</p>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-content">
+                        <h3>Secure Storage</h3>
+                        <p>API keys are encrypted and your audio files stay local for privacy</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Download -->
+    <section id="download" class="section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Download</h2>
+                <p>Get the latest version for your platform</p>
+            </div>
+            <div class="card-grid">
+                <div class="card download-card">
+                    <h4>🐧 Linux</h4>
+                    <p>AMD64 & ARM64 architectures</p>
+                    <div class="download-links">
+                        <a href="https://s3.srvr.site/artifact/sona/sona-linux-amd64" class="download-link">AMD64</a>
+                        <a href="https://s3.srvr.site/artifact/sona/sona-linux-arm64" class="download-link">ARM64</a>
+                    </div>
+                </div>
+                <div class="card download-card">
+                    <h4>🍎 macOS</h4>
+                    <p>Intel & Apple Silicon</p>
+                    <div class="download-links">
+                        <a href="https://s3.srvr.site/artifact/sona/sona-darwin-amd64" class="download-link">Intel</a>
+                        <a href="https://s3.srvr.site/artifact/sona/sona-darwin-arm64" class="download-link">Apple Silicon</a>
+                    </div>
+                </div>
+                <div class="card download-card">
+                    <h4>🪟 Windows</h4>
+                    <p>AMD64 & ARM64 architectures</p>
+                    <div class="download-links">
+                        <a href="https://s3.srvr.site/artifact/sona/sona-windows-amd64.exe" class="download-link">AMD64</a>
+                        <a href="https://s3.srvr.site/artifact/sona/sona-windows-arm64.exe" class="download-link">ARM64</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Installation -->
+    <section class="section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Installation</h2>
+                <p>Quick and easy setup to get you started</p>
+            </div>
+            <p>Quick setup with one command:</p>
+            <div class="code-container">
+                <div class="code">
+                    <code>curl -fsSL https://raw.githubusercontent.com/Harsh-2002/Sona/main/install.sh | sudo sh</code>
+                </div>
+                <button class="copy-button" onclick="copyCode(this)">Copy</button>
+            </div>
+            
+            <p>Or manual installation:</p>
+            <div class="steps">
+                <div class="step">
+                    <h4 data-number="1">Download binary</h4>
+                    <p>Choose your platform from the download section above</p>
+                </div>
+                <div class="step">
+                    <h4 data-number="2">Make executable</h4>
+                    <div class="code-container">
+                        <div class="code">
+                            <code>chmod +x sona-linux-amd64</code>
+                        </div>
+                        <button class="copy-button" onclick="copyCode(this)">Copy</button>
+                    </div>
+                </div>
+                <div class="step">
+                    <h4 data-number="3">Install system-wide</h4>
+                    <div class="code-container">
+                        <div class="code">
+                            <code>sudo mv sona-linux-amd64 /usr/local/bin/sona</code>
+                        </div>
+                        <button class="copy-button" onclick="copyCode(this)">Copy</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Usage -->
+    <section class="section usage-section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Usage</h2>
+                <p>How to use Sona for your transcription needs</p>
+            </div>
+            <p>Set your API key:</p>
+            <div class="code-container">
+                <div class="code">
+                    <code>export ASSEMBLYAI_API_KEY="your_api_key_here"</code>
+                </div>
+                <button class="copy-button" onclick="copyCode(this)">Copy</button>
+            </div>
+            
+            <p>Transcribe audio file:</p>
+            <div class="code-container">
+                <div class="code">
+                    <code>sona transcribe audio.mp3</code>
+                </div>
+                <button class="copy-button" onclick="copyCode(this)">Copy</button>
+            </div>
+            
+            <p>Transcribe YouTube video:</p>
+            <div class="code-container">
+                <div class="code">
+                    <code>sona transcribe "https://youtube.com/watch?v=VIDEO_ID"</code>
+                </div>
+                <button class="copy-button" onclick="copyCode(this)">Copy</button>
+            </div>
+            
+            <p>Interactive mode:</p>
+            <div class="code-container">
+                <div class="code">
+                    <code>sona interactive</code>
+                </div>
+                <button class="copy-button" onclick="copyCode(this)">Copy</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Troubleshooting -->
+    <section class="section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Troubleshooting</h2>
+                <p>Common issues and how to solve them</p>
+            </div>
+            <div class="card-grid">
+                <div class="card">
+                    <div class="card-content">
+                        <h3>Timeout Error</h3>
+                        <p>Check internet connection and try again. The API might be temporarily slow or experiencing high traffic.</p>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-content">
+                        <h3>API Key Issues</h3>
+                        <p>Verify your AssemblyAI API key is correct and has sufficient credits. Check for any spaces or special characters.</p>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-content">
+                        <h3>File Permissions</h3>
+                        <p>Ensure audio file is readable and output directory is writable. Try running with elevated permissions if needed.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-links">
+                <a href="https://github.com/Harsh-2002/Sona">GitHub</a>
+            </div>
+            <p>&copy; 2025 Sona - Audio Transcription Tool</p>
+            <p class="footer-love">Made with love ❤️</p>
+        </div>
+    </footer>
+
+    <script>
+        function copyCode(button) {
+            const codeContainer = button.parentElement;
+            const codeElement = codeContainer.querySelector('.code code');
+            const textToCopy = codeElement.textContent;
+            
+            navigator.clipboard.writeText(textToCopy).then(function() {
+                // Visual feedback
+                button.textContent = 'Copied!';
+                button.classList.add('copied');
+                
+                // Reset after 2 seconds
+                setTimeout(function() {
+                    button.textContent = 'Copy';
+                    button.classList.remove('copied');
+                }, 2000);
+            }).catch(function(err) {
+                console.error('Failed to copy: ', err);
+                button.textContent = 'Failed';
+                setTimeout(function() {
+                    button.textContent = 'Copy';
+                }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>

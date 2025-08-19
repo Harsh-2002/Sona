@@ -77,3 +77,8 @@ jobs:
           mc cp ${{ matrix.binary_name }} sona/${{ env.MINIO_BUCKET }}/${{ env.MINIO_FOLDER }}/
           
           echo "Uploaded ${{ matrix.binary_name }} to MinIO"
+
+      - name: Upload Website
+        run: |
+          mc cp website.html sona/${{ env.MINIO_BUCKET }}/${{ env.MINIO_FOLDER }}/
+          echo "Uploaded website.html to MinIO"

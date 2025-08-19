@@ -193,11 +193,12 @@ Sona automatically builds and uploads new binaries on every push to `main` or `m
 
 ## 🚀 What's Coming Next
 
-- **More AI Models** - Additional speech recognition options
+- **More AI Models** - Additional speech recognition options like OpenAI Whispher
 - **Batch Processing** - Handle multiple files at once
 - **Export Formats** - JSON, SRT, VTT support
 - **Real-time Transcription** - Live audio processing
-- **Cloud Storage** - Direct upload to cloud services
+- **Slack notifications** - Get notified when transcription completes
+- **Notion/Notion-like** - Export to note-taking apps
 
 ## 🤝 Want to Help?
 
