@@ -57,9 +57,6 @@ jobs:
             -o ${{ matrix.binary_name }} \
             cmd/sona/main.go
           
-          # Create checksum
-          sha256sum ${{ matrix.binary_name }} > ${{ matrix.binary_name }}.sha256
-          
           echo "Build completed: ${{ matrix.binary_name }}"
 
       - name: Setup MinIO Client
@@ -73,8 +70,10 @@ jobs:
           # Configure MinIO client
           mc alias set sona ${{ secrets.MINIO_ENDPOINT }} ${{ secrets.MINIO_ACCESS_KEY }} ${{ secrets.MINIO_SECRET_KEY }}
           
-          # Upload binary and checksum
+          # Create sona folder if it doesn't exist
+          mc ls sona/${{ env.MINIO_BUCKET }}/${{ env.MINIO_FOLDER }}/ || mc mb sona/${{ env.MINIO_BUCKET }}/${{ env.MINIO_FOLDER }}
+          
+          # Upload binary
           mc cp ${{ matrix.binary_name }} sona/${{ env.MINIO_BUCKET }}/${{ env.MINIO_FOLDER }}/
-          mc cp ${{ matrix.binary_name }}.sha256 sona/${{ env.MINIO_BUCKET }}/${{ env.MINIO_FOLDER }}/
           
           echo "Uploaded ${{ matrix.binary_name }} to MinIO"
