@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"bytes"
 )
 
 // DownloadAudio downloads audio from a YouTube URL using yt-dlp
@@ -151,7 +152,15 @@ func tryPipInstall() error {
 	if _, err := exec.LookPath("pip"); err == nil {
 		fmt.Println("Attempting to install yt-dlp using pip...")
 		cmd := exec.Command("pip", "install", "--user", "yt-dlp")
-		if err := cmd.Run(); err == nil {
+		
+		// Capture output for debugging
+		var stderr bytes.Buffer
+		cmd.Stderr = &stderr
+		
+		if err := cmd.Run(); err != nil {
+			fmt.Printf("pip installation failed: %v\nStderr: %s\n", err, stderr.String())
+		} else {
+			fmt.Println("✅ yt-dlp installed successfully via pip")
 			return nil
 		}
 	}
@@ -160,7 +169,15 @@ func tryPipInstall() error {
 	if _, err := exec.LookPath("pip3"); err == nil {
 		fmt.Println("Attempting to install yt-dlp using pip3...")
 		cmd := exec.Command("pip3", "install", "--user", "yt-dlp")
-		if err := cmd.Run(); err == nil {
+		
+		// Capture output for debugging
+		var stderr bytes.Buffer
+		cmd.Stderr = &stderr
+		
+		if err := cmd.Run(); err != nil {
+			fmt.Printf("pip3 installation failed: %v\nStderr: %s\n", err, stderr.String())
+		} else {
+			fmt.Println("✅ yt-dlp installed successfully via pip3")
 			return nil
 		}
 	}
@@ -173,14 +190,16 @@ func downloadYtDlpBinary() error {
 	// Determine platform and architecture
 	platform := getPlatform()
 	arch := getArchitecture()
-
+	
 	fmt.Printf("Detected platform: %s, architecture: %s\n", platform, arch)
-
+	
 	// Get the appropriate download URL for this platform
 	downloadURL := getYtDlpDownloadURL(platform, arch)
 	if downloadURL == "" {
 		return fmt.Errorf("unsupported platform: %s/%s", platform, arch)
 	}
+
+	fmt.Printf("Download URL: %s\n", downloadURL)
 
 	// Check if curl or wget is available
 	var downloadCmd *exec.Cmd
@@ -210,15 +229,34 @@ func downloadYtDlpBinary() error {
 	if err != nil {
 		return fmt.Errorf("failed to get current directory: %v", err)
 	}
-
+	
 	if err := os.Chdir(userBin); err != nil {
 		return fmt.Errorf("failed to change to bin directory: %v", err)
 	}
 	defer os.Chdir(originalDir)
 
-	// Download the binary
+	// Download the binary with verbose output
+	fmt.Printf("Downloading to: %s\n", userBin)
+	
+	// Capture output for debugging
+	var stderr bytes.Buffer
+	downloadCmd.Stderr = &stderr
+	
 	if err := downloadCmd.Run(); err != nil {
-		return fmt.Errorf("failed to download yt-dlp: %v", err)
+		return fmt.Errorf("failed to download yt-dlp: %v\nStderr: %s", err, stderr.String())
+	}
+
+	// Verify the file was downloaded
+	if _, err := os.Stat("yt-dlp"); err != nil {
+		return fmt.Errorf("downloaded file not found: %v", err)
+	}
+
+	// Get file size
+	if fileInfo, err := os.Stat("yt-dlp"); err == nil {
+		fmt.Printf("Downloaded file size: %d bytes\n", fileInfo.Size())
+		if fileInfo.Size() == 0 {
+			return fmt.Errorf("downloaded file is empty")
+		}
 	}
 
 	// Make it executable
@@ -228,12 +266,12 @@ func downloadYtDlpBinary() error {
 	}
 
 	fmt.Printf("✅ yt-dlp installed successfully to: %s\n", targetPath)
-
+	
 	// Try to add to PATH for current session
 	if err := addToPath(userBin); err != nil {
 		fmt.Printf("⚠️  Warning: Could not update PATH. You may need to restart your terminal or run: export PATH=$PATH:%s\n", userBin)
 	}
-
+	
 	return nil
 }
 
@@ -268,26 +306,27 @@ func getArchitecture() string {
 // getYtDlpDownloadURL returns the appropriate download URL for the platform
 func getYtDlpDownloadURL(platform, arch string) string {
 	baseURL := "https://github.com/yt-dlp/yt-dlp/releases/latest/download"
-
+	
 	switch platform {
 	case "macos":
-		if arch == "x86_64" {
-			return baseURL + "/yt-dlp_macos"
-		} else if arch == "aarch64" {
-			return baseURL + "/yt-dlp_macos_arm64"
-		}
+		// macOS has universal binaries that work on both Intel and ARM64
+		return baseURL + "/yt-dlp_macos"
 	case "linux":
 		if arch == "x86_64" {
 			return baseURL + "/yt-dlp_linux"
 		} else if arch == "aarch64" {
 			return baseURL + "/yt-dlp_linux_aarch64"
+		} else if arch == "armv7l" {
+			return baseURL + "/yt-dlp_linux_armv7l"
 		}
 	case "windows":
 		if arch == "x86_64" {
 			return baseURL + "/yt-dlp.exe"
+		} else if arch == "386" {
+			return baseURL + "/yt-dlp_x86.exe"
 		}
 	}
-
+	
 	return ""
 }
 

@@ -50,50 +50,50 @@ var statusCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("Sona System Status")
 		fmt.Println("==================")
-		
+
 		// Check yt-dlp
-		fmt.Println("\nYouTube Download (yt-dlp):")
+		fmt.Println("\n1. YouTube Download (yt-dlp):")
 		if ytdlpPath, err := youtube.FindBinary("yt-dlp"); err == nil {
-			fmt.Printf("  Available at: %s\n", ytdlpPath)
+			fmt.Printf("   Available at: %s\n", ytdlpPath)
 		} else {
-			fmt.Println("  Not found (will auto-install when needed)")
+			fmt.Println("   Not found (will auto-install when needed)")
 		}
-		
+
 		// Check FFmpeg
-		fmt.Println("\nAudio Processing (FFmpeg):")
+		fmt.Println("\n2. Audio Processing (FFmpeg):")
 		if ffmpegPath, err := transcriber.FindBinary("ffmpeg"); err == nil {
-			fmt.Printf("  Available at: %s\n", ffmpegPath)
+			fmt.Printf("   Available at: %s\n", ffmpegPath)
 		} else {
-			fmt.Println("  Not found (will auto-install when needed)")
+			fmt.Println("   Not found (will auto-install when needed)")
 		}
-		
+
 		// Check API key
-		fmt.Println("\nAssemblyAI API Key:")
+		fmt.Println("\n3. AssemblyAI API Key:")
 		apiKey := config.GetAPIKeyNoExit()
 		if apiKey != "" {
-			fmt.Println("  Configured")
+			fmt.Println("   Configured")
 		} else {
-			fmt.Println("  Not configured")
-			fmt.Println("  Run 'sona config set api_key <YOUR_KEY>' to set it")
+			fmt.Println("   Not configured")
+			fmt.Println("   Run 'sona config set api_key <YOUR_KEY>' to set it")
 		}
-		
+
 		// Check output directory
-		fmt.Println("\nDefault Output Directory:")
+		fmt.Println("\n4. Default Output Directory:")
 		defaultPath := config.GetOutputPath()
-		fmt.Printf("  %s\n", defaultPath)
-		
+		fmt.Printf("   %s\n", defaultPath)
+
 		// Check if directory exists and is writable
 		if info, err := os.Stat(defaultPath); err == nil && info.IsDir() {
 			if testFile := os.WriteFile(filepath.Join(defaultPath, ".test"), []byte("test"), 0644); testFile == nil {
 				os.Remove(filepath.Join(defaultPath, ".test"))
-				fmt.Println("  Directory exists and is writable")
+				fmt.Println("   Directory exists and is writable")
 			} else {
-				fmt.Println("  Directory exists but may not be writable")
+				fmt.Println("   Directory exists but may not be writable")
 			}
 		} else {
-			fmt.Println("  Directory does not exist (will be created automatically)")
+			fmt.Println("   Directory does not exist (will be created automatically)")
 		}
-		
+
 		fmt.Println("\nStatus check completed!")
 	},
 }
