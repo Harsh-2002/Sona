@@ -1,0 +1,155 @@
+on:
+  push:
+    # Sequence of patterns matched against refs/tags
+    tags:
+      - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+
+name: Create Release
+
+jobs:
+  build:
+    name: Create Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.23'
+          
+      - name: Build for all platforms
+        run: |
+          # Create build directory
+          mkdir -p build
+          
+          # Build for Linux (64-bit)
+          echo "Building for Linux..."
+          GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o build/sona-linux-amd64 cmd/sona/main.go
+          
+          # Build for Linux (ARM64)
+          echo "Building for Linux ARM64..."
+          GOOS=linux GOARCH=arm64 go build -ldflags="-s -w" -o build/sona-linux-arm64 cmd/sona/main.go
+          
+          # Build for macOS (Intel)
+          echo "Building for macOS Intel..."
+          GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -o build/sona-darwin-amd64 cmd/sona/main.go
+          
+          # Build for macOS (Apple Silicon)
+          echo "Building for macOS Apple Silicon..."
+          GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w" -o build/sona-darwin-arm64 cmd/sona/main.go
+          
+          # Build for Windows (64-bit)
+          echo "Building for Windows..."
+          GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -o build/sona-windows-amd64.exe cmd/sona/main.go
+          
+          # Show what we built
+          echo "Build complete! Files created:"
+          ls -la build/
+          
+      - name: Create checksums
+        run: |
+          cd build
+          for file in *; do
+            if [ -f "$file" ]; then
+              sha256sum "$file" > "$file.sha256"
+              echo "Created checksum for $file"
+            fi
+          done
+          cd ..
+          
+      - name: Create Release
+        id: create_release
+        uses: comnoco/create-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          body: |
+            ## 🚀 New Sona Release
+            
+            ### What's New
+            - Improved performance and stability
+            - Bug fixes and enhancements
+            
+            ### Downloads
+            This release includes binaries for:
+            - **Linux**: AMD64 and ARM64
+            - **macOS**: Intel and Apple Silicon
+            - **Windows**: AMD64
+            
+            ### Installation
+            Download the appropriate binary for your platform and make it executable:
+            ```bash
+            # Linux/macOS
+            chmod +x sona-linux-amd64
+            ./sona-linux-amd64 --help
+            
+            # Windows
+            sona-windows-amd64.exe --help
+            ```
+          draft: false
+          prerelease: false
+          
+      - name: Upload Release Assets
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./build/sona-linux-amd64
+          asset_name: sona-linux-amd64
+          asset_content_type: application/octet-stream
+          
+      - name: Upload Linux ARM64
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./build/sona-linux-arm64
+          asset_name: sona-linux-arm64
+          asset_content_type: application/octet-stream
+          
+      - name: Upload macOS Intel
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./build/sona-darwin-amd64
+          asset_name: sona-darwin-amd64
+          asset_content_type: application/octet-stream
+          
+      - name: Upload macOS Apple Silicon
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./build/sona-darwin-arm64
+          asset_name: sona-darwin-arm64
+          asset_content_type: application/octet-stream
+          
+      - name: Upload Windows
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./build/sona-windows-amd64.exe
+          asset_name: sona-windows-amd64.exe
+          asset_content_type: application/octet-stream
+          
+      - name: Upload Checksums
+        run: |
+          cd build
+          for file in *.sha256; do
+            if [ -f "$file" ]; then
+              echo "Uploading checksum: $file"
+              gh release upload ${{ github.ref }} "$file" --repo ${{ github.repository }}
+            fi
+          done
+          cd ..

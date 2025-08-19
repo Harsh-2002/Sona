@@ -278,6 +278,34 @@ We're planning to add:
 - **Progress bars** - See how things are going
 - **Auto-updates** - Sona updates itself automatically
 
+## 📦 Automated Releases
+
+When we create a new version, GitHub automatically:
+- Builds Sona for all platforms (Linux, macOS, Windows)
+- Creates a new release with all binaries
+- Generates checksums for security
+- Makes it easy to download the right version for your system
+
+### 🚀 Creating Releases
+
+Use our simple release script:
+```bash
+# Patch release (1.0.0 → 1.0.1)
+./scripts/release.sh patch
+
+# Minor release (1.0.0 → 1.1.0)  
+./scripts/release.sh minor
+
+# Major release (1.0.0 → 2.0.0)
+./scripts/release.sh major
+```
+
+Or manually with git:
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+
 ## 🤝 Want to Help?
 
 1. Fork the repository
