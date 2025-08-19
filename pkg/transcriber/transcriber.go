@@ -214,69 +214,15 @@ func FindBinary(binaryName string) (string, error) {
 
 // installFFmpeg attempts to install FFmpeg
 func installFFmpeg() error {
-	// Try package managers first
-	if err := tryPackageManagers(); err == nil {
-		return nil
-	}
-
-	// If package managers fail, try direct download
-	fmt.Println("Package managers not available or failed, trying direct download...")
+	// Direct binary download is more reliable across platforms
+	fmt.Println("Downloading FFmpeg binary directly...")
 	return downloadFFmpegBinary()
 }
 
-// tryPackageManagers attempts to install FFmpeg using various package managers
+// tryPackageManagers attempts to install FFmpeg using various package managers (DEPRECATED)
 func tryPackageManagers() error {
-	var cmd *exec.Cmd
-
-	// Try apt-get (Debian/Ubuntu)
-	if _, err := exec.LookPath("apt-get"); err == nil {
-		fmt.Println("Attempting to install FFmpeg using apt-get...")
-		cmd = exec.Command("sudo", "apt-get", "update")
-		cmd.Run() // Ignore error
-
-		cmd = exec.Command("sudo", "apt-get", "install", "-y", "ffmpeg")
-		if err := cmd.Run(); err == nil {
-			return nil
-		}
-	}
-
-	// Try yum (CentOS/RHEL/Fedora)
-	if _, err := exec.LookPath("yum"); err == nil {
-		fmt.Println("Attempting to install FFmpeg using yum...")
-		cmd = exec.Command("sudo", "yum", "install", "-y", "ffmpeg")
-		if err := cmd.Run(); err == nil {
-			return nil
-		}
-	}
-
-	// Try dnf (newer Fedora)
-	if _, err := exec.LookPath("dnf"); err == nil {
-		fmt.Println("Attempting to install FFmpeg using dnf...")
-		cmd = exec.Command("sudo", "dnf", "install", "-y", "ffmpeg")
-		if err := cmd.Run(); err == nil {
-			return nil
-		}
-	}
-
-	// Try brew (macOS)
-	if _, err := exec.LookPath("brew"); err == nil {
-		fmt.Println("Attempting to install FFmpeg using brew...")
-		cmd = exec.Command("brew", "install", "ffmpeg")
-		if err := cmd.Run(); err == nil {
-			return nil
-		}
-	}
-
-	// Try choco (Windows)
-	if _, err := exec.LookPath("choco"); err == nil {
-		fmt.Println("Attempting to install FFmpeg using chocolatey...")
-		cmd = exec.Command("choco", "install", "ffmpeg", "-y")
-		if err := cmd.Run(); err == nil {
-			return nil
-		}
-	}
-
-	return fmt.Errorf("no suitable package manager found")
+	// This function is deprecated - direct binary download is preferred
+	return fmt.Errorf("package manager installation deprecated - using direct binary download")
 }
 
 // downloadFFmpegBinary downloads FFmpeg binary for systems without package managers

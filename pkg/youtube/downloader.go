@@ -1,6 +1,7 @@
 package youtube
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"os"
@@ -10,7 +11,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	"bytes"
 )
 
 // DownloadAudio downloads audio from a YouTube URL using yt-dlp
@@ -136,53 +136,15 @@ func FindBinary(binaryName string) (string, error) {
 
 // installYtDlp attempts to install yt-dlp
 func installYtDlp() error {
-	// Try pip installations first
-	if err := tryPipInstall(); err == nil {
-		return nil
-	}
-
-	// If pip fails, try direct binary download
-	fmt.Println("pip installation failed, trying direct download...")
+	// Direct binary download is more reliable across platforms
+	fmt.Println("Downloading yt-dlp binary directly...")
 	return downloadYtDlpBinary()
 }
 
-// tryPipInstall attempts to install yt-dlp using pip
+// tryPipInstall attempts to install yt-dlp using pip (DEPRECATED)
 func tryPipInstall() error {
-	// Try using pip first
-	if _, err := exec.LookPath("pip"); err == nil {
-		fmt.Println("Attempting to install yt-dlp using pip...")
-		cmd := exec.Command("pip", "install", "--user", "yt-dlp")
-		
-		// Capture output for debugging
-		var stderr bytes.Buffer
-		cmd.Stderr = &stderr
-		
-		if err := cmd.Run(); err != nil {
-			fmt.Printf("pip installation failed: %v\nStderr: %s\n", err, stderr.String())
-		} else {
-			fmt.Println("✅ yt-dlp installed successfully via pip")
-			return nil
-		}
-	}
-
-	// Try using pip3
-	if _, err := exec.LookPath("pip3"); err == nil {
-		fmt.Println("Attempting to install yt-dlp using pip3...")
-		cmd := exec.Command("pip3", "install", "--user", "yt-dlp")
-		
-		// Capture output for debugging
-		var stderr bytes.Buffer
-		cmd.Stderr = &stderr
-		
-		if err := cmd.Run(); err != nil {
-			fmt.Printf("pip3 installation failed: %v\nStderr: %s\n", err, stderr.String())
-		} else {
-			fmt.Println("✅ yt-dlp installed successfully via pip3")
-			return nil
-		}
-	}
-
-	return fmt.Errorf("pip installation failed")
+	// This function is deprecated - direct binary download is preferred
+	return fmt.Errorf("pip installation deprecated - using direct binary download")
 }
 
 // downloadYtDlpBinary downloads yt-dlp binary directly for the current platform
@@ -190,9 +152,9 @@ func downloadYtDlpBinary() error {
 	// Determine platform and architecture
 	platform := getPlatform()
 	arch := getArchitecture()
-	
+
 	fmt.Printf("Detected platform: %s, architecture: %s\n", platform, arch)
-	
+
 	// Get the appropriate download URL for this platform
 	downloadURL := getYtDlpDownloadURL(platform, arch)
 	if downloadURL == "" {
@@ -229,7 +191,7 @@ func downloadYtDlpBinary() error {
 	if err != nil {
 		return fmt.Errorf("failed to get current directory: %v", err)
 	}
-	
+
 	if err := os.Chdir(userBin); err != nil {
 		return fmt.Errorf("failed to change to bin directory: %v", err)
 	}
@@ -237,11 +199,11 @@ func downloadYtDlpBinary() error {
 
 	// Download the binary with verbose output
 	fmt.Printf("Downloading to: %s\n", userBin)
-	
+
 	// Capture output for debugging
 	var stderr bytes.Buffer
 	downloadCmd.Stderr = &stderr
-	
+
 	if err := downloadCmd.Run(); err != nil {
 		return fmt.Errorf("failed to download yt-dlp: %v\nStderr: %s", err, stderr.String())
 	}
@@ -266,12 +228,12 @@ func downloadYtDlpBinary() error {
 	}
 
 	fmt.Printf("✅ yt-dlp installed successfully to: %s\n", targetPath)
-	
+
 	// Try to add to PATH for current session
 	if err := addToPath(userBin); err != nil {
 		fmt.Printf("⚠️  Warning: Could not update PATH. You may need to restart your terminal or run: export PATH=$PATH:%s\n", userBin)
 	}
-	
+
 	return nil
 }
 
@@ -306,7 +268,7 @@ func getArchitecture() string {
 // getYtDlpDownloadURL returns the appropriate download URL for the platform
 func getYtDlpDownloadURL(platform, arch string) string {
 	baseURL := "https://github.com/yt-dlp/yt-dlp/releases/latest/download"
-	
+
 	switch platform {
 	case "macos":
 		// macOS has universal binaries that work on both Intel and ARM64
@@ -326,7 +288,7 @@ func getYtDlpDownloadURL(platform, arch string) string {
 			return baseURL + "/yt-dlp_x86.exe"
 		}
 	}
-	
+
 	return ""
 }
 
