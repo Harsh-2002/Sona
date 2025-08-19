@@ -176,34 +176,8 @@ uninstall_sona() {
         print_status "$GREEN" "✅ Removed empty config directory"
     fi
     
-    # Ask user about removing dependencies
-    print_status "$BLUE" "\n🔧 Dependencies (yt-dlp and FFmpeg):"
-    print_status "$YELLOW" "These were auto-installed by Sona. Do you want to remove them as well?"
-    print_status "$YELLOW" "Note: This will remove the binaries from your system."
-    
-    read -p "Remove yt-dlp and FFmpeg? (y/N): " -r remove_deps
-    
-    if [[ $remove_deps =~ ^[Yy]$ ]]; then
-        # Remove yt-dlp
-        if command -v yt-dlp >/dev/null 2>&1; then
-            local ytdlp_path=$(which yt-dlp)
-            rm -f "$ytdlp_path"
-            print_status "$GREEN" "✅ Removed yt-dlp from $ytdlp_path"
-        fi
-        
-        # Remove FFmpeg
-        if command -v ffmpeg >/dev/null 2>&1; then
-            local ffmpeg_path=$(which ffmpeg)
-            rm -f "$ffmpeg_path"
-            print_status "$GREEN" "✅ Removed FFmpeg from $ffmpeg_path"
-        fi
-        
-        print_status "$GREEN" "✅ All dependencies removed"
-    else
-        print_status "$BLUE" "ℹ️  Dependencies kept (yt-dlp and FFmpeg remain installed)"
-    fi
-    
     print_status "$GREEN" "🎉 Uninstallation completed!"
+    print_status "$BLUE" "ℹ️  Dependencies (yt-dlp, FFmpeg) were kept for other applications"
 }
 
 # Function to show help
