@@ -195,12 +195,14 @@ cat ~/.sona/sona.log
 
 The log file contains detailed information about:
 - Dependency installation
-- YouTube downloads
+- YouTube downloads  
 - Audio processing
 - Transcription steps
 - Error details
 
 **Location:** `~/.sona/sona.log`
+
+**macOS Note:** On macOS, Sona automatically installs both `ffmpeg` and `ffprobe` from evermeet.cx, which are required for YouTube audio extraction.
 
 ### Updating Sona
 

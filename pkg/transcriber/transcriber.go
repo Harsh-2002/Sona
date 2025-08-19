@@ -261,96 +261,118 @@ func installFFmpeg() error {
 func downloadFFmpegBinary() error {
 	fmt.Println("Attempting to download FFmpeg binary...")
 
-	// Determine platform and architecture
 	platform := getPlatform()
 	arch := getArchitecture()
 
-	fmt.Printf("Detected platform: %s, architecture: %s\n", platform, arch)
+	logger.LogInfo("Detected platform: %s, architecture: %s", platform, arch)
 
-	// Get the appropriate download URL for this platform
+	if platform == "macos" {
+		// For macOS, download both ffmpeg and ffprobe from evermeet.cx
+		return downloadMacOSFFmpeg()
+	}
+
+	// For other platforms, use BtbN builds
 	downloadURL, filename := getFFmpegDownloadURL(platform, arch)
 	if downloadURL == "" {
 		return fmt.Errorf("unsupported platform: %s/%s", platform, arch)
 	}
 
-	// Check if curl or wget is available
-	var downloadCmd *exec.Cmd
-	if _, err := exec.LookPath("curl"); err == nil {
-		downloadCmd = exec.Command("curl", "-L", "-o", filename, downloadURL)
-	} else if _, err := exec.LookPath("wget"); err == nil {
-		downloadCmd = exec.Command("wget", "-O", filename, downloadURL)
-	} else {
-		return fmt.Errorf("neither curl nor wget found - cannot download FFmpeg")
-	}
+	logger.LogInfo("Downloading FFmpeg from: %s", downloadURL)
 
-	fmt.Printf("Downloading FFmpeg binary from: %s\n", downloadURL)
-
-	// Get user's bin directory
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		return fmt.Errorf("failed to get home directory: %v", err)
-	}
-
-	userBin := filepath.Join(homeDir, "bin")
-	if err := os.MkdirAll(userBin, 0755); err != nil {
+	// Create bin directory if it doesn't exist
+	binDir := filepath.Join(os.Getenv("HOME"), "bin")
+	if err := os.MkdirAll(binDir, 0755); err != nil {
 		return fmt.Errorf("failed to create bin directory: %v", err)
 	}
 
-	// Change to user's bin directory for download
+	// Change to the bin directory for extraction
 	originalDir, err := os.Getwd()
 	if err != nil {
 		return fmt.Errorf("failed to get current directory: %v", err)
 	}
 
-	if err := os.Chdir(userBin); err != nil {
+	if err := os.Chdir(binDir); err != nil {
 		return fmt.Errorf("failed to change to bin directory: %v", err)
 	}
 	defer os.Chdir(originalDir)
 
-	// Download the binary
-	if err := downloadCmd.Run(); err != nil {
-		// For macOS, try fallback URL if primary fails
-		if platform == "macos" && strings.Contains(downloadURL, "evermeet.cx") {
-			fmt.Println("Primary download failed, trying fallback URL...")
-			fallbackURL := "https://evermeet.cx/ffmpeg/ffmpeg-120751-g1d06e8ddcd.zip"
-			fallbackFilename := "ffmpeg-macos-fallback.zip"
-
-			if _, err := exec.LookPath("curl"); err == nil {
-				downloadCmd = exec.Command("curl", "-L", "-o", fallbackFilename, fallbackURL)
-			} else {
-				downloadCmd = exec.Command("wget", "-O", fallbackFilename, fallbackURL)
-			}
-
-			fmt.Printf("Downloading FFmpeg binary from fallback: %s\n", fallbackURL)
-			if err := downloadCmd.Run(); err != nil {
-				return fmt.Errorf("both primary and fallback downloads failed: %v", err)
-			}
-			filename = fallbackFilename
-		} else {
-			return fmt.Errorf("failed to download FFmpeg: %v", err)
-		}
+	// Download the archive
+	cmd := exec.Command("curl", "-L", "-o", filename, downloadURL)
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("failed to download FFmpeg: %v", err)
 	}
 
-	// Extract if it's a compressed file
-	if strings.HasSuffix(filename, ".tar.gz") || strings.HasSuffix(filename, ".tar.xz") || strings.HasSuffix(filename, ".zip") {
-		if err := extractFFmpegArchive(filename); err != nil {
-			return fmt.Errorf("failed to extract FFmpeg archive: %v", err)
-		}
+	// Extract the archive
+	if err := extractFFmpegArchive(filename); err != nil {
+		return fmt.Errorf("failed to extract FFmpeg archive: %v", err)
 	}
 
-	// Make it executable
-	targetPath := filepath.Join(userBin, "ffmpeg")
-	if err := os.Chmod(targetPath, 0755); err != nil {
-		return fmt.Errorf("failed to make FFmpeg executable: %v", err)
+	logger.LogInfo("FFmpeg installed successfully")
+	return nil
+}
+
+// downloadMacOSFFmpeg downloads ffmpeg and ffprobe for macOS from evermeet.cx
+func downloadMacOSFFmpeg() error {
+	logger.LogInfo("Downloading FFmpeg and ffprobe for macOS from evermeet.cx")
+
+	binDir := filepath.Join(os.Getenv("HOME"), "bin")
+	if err := os.MkdirAll(binDir, 0755); err != nil {
+		return fmt.Errorf("failed to create bin directory: %v", err)
 	}
 
-	fmt.Printf("✅ FFmpeg installed successfully to: %s\n", targetPath)
+	// Download ffmpeg
+	ffmpegURL := "https://evermeet.cx/ffmpeg/get/zip"
+	ffmpegPath := filepath.Join(binDir, "ffmpeg.zip")
+	logger.LogInfo("Downloading ffmpeg from: %s", ffmpegURL)
 
-	// Try to add to PATH for current session
-	if err := addToPath(userBin); err != nil {
-		fmt.Printf("⚠️  Warning: Could not update PATH. You may need to restart your terminal or run: export PATH=$PATH:%s\n", userBin)
+	cmd := exec.Command("curl", "-L", "-o", ffmpegPath, ffmpegURL)
+	if output, err := cmd.CombinedOutput(); err != nil {
+		logger.LogError("Failed to download ffmpeg: %v, output: %s", err, string(output))
+		return fmt.Errorf("failed to download ffmpeg: %v", err)
 	}
 
+	// Extract ffmpeg
+	cmd = exec.Command("unzip", "-q", "-o", ffmpegPath, "-d", binDir)
+	if output, err := cmd.CombinedOutput(); err != nil {
+		logger.LogError("Failed to extract ffmpeg: %v, output: %s", err, string(output))
+		return fmt.Errorf("failed to extract ffmpeg: %v", err)
+	}
+
+	// Download ffprobe
+	ffprobeURL := "https://evermeet.cx/ffmpeg/get/ffprobe/zip"
+	ffprobePath := filepath.Join(binDir, "ffprobe.zip")
+	logger.LogInfo("Downloading ffprobe from: %s", ffprobeURL)
+
+	cmd = exec.Command("curl", "-L", "-o", ffprobePath, ffprobeURL)
+	if output, err := cmd.CombinedOutput(); err != nil {
+		logger.LogError("Failed to download ffprobe: %v, output: %s", err, string(output))
+		return fmt.Errorf("failed to download ffprobe: %v", err)
+	}
+
+	// Extract ffprobe
+	cmd = exec.Command("unzip", "-q", "-o", ffprobePath, "-d", binDir)
+	if output, err := cmd.CombinedOutput(); err != nil {
+		logger.LogError("Failed to extract ffprobe: %v, output: %s", err, string(output))
+		return fmt.Errorf("failed to extract ffprobe: %v", err)
+	}
+
+	// Make binaries executable
+	ffmpegBin := filepath.Join(binDir, "ffmpeg")
+	ffprobeBin := filepath.Join(binDir, "ffprobe")
+
+	if err := os.Chmod(ffmpegBin, 0755); err != nil {
+		return fmt.Errorf("failed to make ffmpeg executable: %v", err)
+	}
+
+	if err := os.Chmod(ffprobeBin, 0755); err != nil {
+		return fmt.Errorf("failed to make ffprobe executable: %v", err)
+	}
+
+	// Clean up zip files
+	os.Remove(ffmpegPath)
+	os.Remove(ffprobePath)
+
+	logger.LogInfo("FFmpeg and ffprobe installed successfully to: %s", binDir)
 	return nil
 }
 

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 
 	"github.com/Harsh-2002/Sona/pkg/config"
 	"github.com/Harsh-2002/Sona/pkg/interactive"
@@ -63,7 +64,16 @@ var statusCmd = &cobra.Command{
 		// Check FFmpeg
 		fmt.Println("\n2. Audio Processing (FFmpeg):")
 		if ffmpegPath, err := transcriber.FindBinary("ffmpeg"); err == nil {
-			fmt.Printf("   Available at: %s\n", ffmpegPath)
+			fmt.Printf("   FFmpeg available at: %s\n", ffmpegPath)
+
+			// On macOS, also check for ffprobe
+			if runtime.GOOS == "darwin" {
+				if ffprobePath, err := transcriber.FindBinary("ffprobe"); err == nil {
+					fmt.Printf("   ffprobe available at: %s\n", ffprobePath)
+				} else {
+					fmt.Println("   ffprobe not found (will auto-install when needed)")
+				}
+			}
 		} else {
 			fmt.Println("   Not found (will auto-install when needed)")
 		}
