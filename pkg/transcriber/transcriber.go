@@ -103,6 +103,21 @@ func checkAndInstallDependencies() error {
 		fmt.Println("✅ FFmpeg installed successfully")
 	} else {
 		logger.LogInfo("FFmpeg found at: %s", ffmpegPath)
+
+		// On macOS, also check for ffprobe
+		if runtime.GOOS == "darwin" {
+			if _, err := FindBinary("ffprobe"); err != nil {
+				fmt.Println("📥 Installing ffprobe for macOS...")
+				logger.LogInfo("ffprobe not found on macOS, installing")
+				if err := installFFmpeg(); err != nil {
+					logger.LogError("Failed to install ffprobe: %v", err)
+					return fmt.Errorf("failed to install ffprobe: %v", err)
+				}
+				fmt.Println("✅ ffprobe installed successfully")
+			} else {
+				logger.LogInfo("ffprobe found")
+			}
+		}
 	}
 
 	fmt.Println("🎯 All dependencies are ready!")

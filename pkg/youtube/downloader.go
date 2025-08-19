@@ -40,12 +40,15 @@ func DownloadAudio(url string, outputDir string) (string, error) {
 	outputFilename := "youtube_audio.mp3"
 	outputPath := filepath.Join(outputDir, outputFilename)
 
-	// Build yt-dlp command
+	// Build yt-dlp command with additional options for better compatibility
 	args := []string{
 		"--extract-audio",
 		"--audio-format", "mp3",
 		"--audio-quality", "0",
 		"--output", outputPath,
+		"--no-playlist",
+		"--force-generic-extractor",
+		"--extractor-args", "youtube:player_client=android",
 		url,
 	}
 
@@ -58,7 +61,28 @@ func DownloadAudio(url string, outputDir string) (string, error) {
 
 	if err := cmd.Run(); err != nil {
 		logger.LogError("yt-dlp command failed: %v, stderr: %s", err, stderr.String())
-		return "", fmt.Errorf("failed to download audio: %v", err)
+
+		// Try fallback options if first attempt fails
+		logger.LogInfo("First attempt failed, trying fallback options")
+		fallbackArgs := []string{
+			"--extract-audio",
+			"--audio-format", "mp3",
+			"--audio-quality", "0",
+			"--output", outputPath,
+			"--no-playlist",
+			"--extractor-args", "youtube:player_client=web",
+			url,
+		}
+
+		cmd = exec.Command(ytdlpPath, fallbackArgs...)
+		cmd.Stderr = &stderr
+
+		if err := cmd.Run(); err != nil {
+			logger.LogError("yt-dlp fallback also failed: %v, stderr: %s", err, stderr.String())
+			return "", fmt.Errorf("failed to download audio: %v", err)
+		}
+
+		logger.LogInfo("yt-dlp fallback succeeded")
 	}
 
 	logger.LogInfo("Audio download completed successfully: %s", outputPath)
