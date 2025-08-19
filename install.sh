@@ -61,7 +61,7 @@ get_binary_name() {
 download_binary() {
     local binary_name=$1
     local download_url="https://s3.srvr.site/artifact/sona/$binary_name"
-    local install_dir="$HOME/.local/bin"
+    local install_dir="/usr/local/bin"
     
     echo "📥 Downloading $binary_name..."
     echo "URL: $download_url"
@@ -69,72 +69,29 @@ download_binary() {
     # Create install directory if it doesn't exist
     mkdir -p "$install_dir"
     
-    # Download binary
+    # Download binary directly to system bin directory
     if command -v curl >/dev/null 2>&1; then
-        curl -L -o "$install_dir/$binary_name" "$download_url"
+        curl -L -o "$install_dir/sona" "$download_url"
     elif command -v wget >/dev/null 2>&1; then
-        wget -O "$install_dir/$binary_name" "$download_url"
+        wget -O "$install_dir/sona" "$download_url"
     else
         echo "Error: Neither curl nor wget found. Please install one of them."
         exit 1
     fi
     
     # Make binary executable
-    chmod +x "$install_dir/$binary_name"
+    chmod +x "$install_dir/sona"
     
-    echo "✅ Downloaded $binary_name to $install_dir/"
+    echo "✅ Downloaded and installed sona to $install_dir/"
 }
 
-# Function to setup PATH
-setup_path() {
-    local install_dir="$HOME/.local/bin"
-    local shell_rc=""
-    
-    # Detect shell and config file
-    if [ -n "$ZSH_VERSION" ]; then
-        shell_rc="$HOME/.zshrc"
-    elif [ -n "$BASH_VERSION" ]; then
-        shell_rc="$HOME/.bashrc"
-    elif [ -n "$KSH_VERSION" ]; then
-        shell_rc="$HOME/.kshrc"
-    elif [ -n "$FCEDIT" ]; then
-        shell_rc="$HOME/.kshrc"
-    else
-        # Default to .profile for other shells
-        shell_rc="$HOME/.profile"
-    fi
-    
-    # Check if PATH already includes install directory
-    case ":$PATH:" in
-        *":$install_dir:"*) 
-            echo "✅ PATH already includes $install_dir"
-            return 0
-            ;;
-    esac
-    
-    echo "📝 Adding $install_dir to PATH in $shell_rc"
-    echo "" >> "$shell_rc"
-    echo "# Sona binary path" >> "$shell_rc"
-    echo "export PATH=\"\$PATH:$install_dir\"" >> "$shell_rc"
-    
-    echo "✅ PATH updated! Please restart your terminal or run:"
-    echo "   . $shell_rc"
-}
-
-# Function to create symlink
-create_symlink() {
-    local binary_name=$1
-    local install_dir="$HOME/.local/bin"
-    local symlink_path="/usr/local/bin/sona"
-    
-    if [ "$(id -u)" -eq 0 ]; then
-        echo "🔗 Creating system-wide symlink..."
-        ln -sf "$install_dir/$binary_name" "$symlink_path"
-        echo "✅ System-wide symlink created at $symlink_path"
-        echo "   You can now run 'sona' from anywhere"
-    else
-        echo "💡 To create a system-wide symlink, run with sudo:"
+# Function to check if running as root
+check_root() {
+    if [ "$(id -u)" -ne 0 ]; then
+        echo "❌ This installer requires root privileges for system-wide installation."
+        echo "💡 Please run with sudo:"
         echo "   sudo $0"
+        exit 1
     fi
 }
 
@@ -142,6 +99,9 @@ create_symlink() {
 main() {
     echo "🚀 Sona Installer"
     echo "================"
+    
+    # Check if running as root
+    check_root
     
     # Detect platform
     local platform=$(detect_platform)
@@ -165,20 +125,12 @@ main() {
     
     echo "📦 Installing $binary_name for $platform"
     
-    # Download binary
+    # Download and install binary
     download_binary "$binary_name"
     
-    # Setup PATH
-    setup_path
-    
-    # Create symlink if running as root
-    create_symlink "$binary_name"
-    
     echo "🎉 Installation completed!"
-    echo "📋 Next steps:"
-    echo "  1. Restart your terminal or run: . ~/.bashrc (or ~/.zshrc)"
-    echo "  2. Test installation: sona --help"
-    echo "  3. Start using Sona!"
+    echo "✅ Sona is now available system-wide as 'sona'"
+    echo "📋 Test it with: sona --help"
 }
 
 # Run main function

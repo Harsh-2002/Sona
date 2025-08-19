@@ -8,12 +8,12 @@ Turn audio files and YouTube videos into text with just a few commands. Sona use
 
 **Linux/macOS:**
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Harsh-2002/Sona/main/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/Harsh-2002/Sona/main/install.sh | sudo sh
 ```
 
 **With wget:**
 ```bash
-wget -qO- https://raw.githubusercontent.com/Harsh-2002/Sona/main/install.sh | sh
+wget -qO- https://raw.githubusercontent.com/Harsh-2002/Sona/main/install.sh | sudo sh
 ```
 
 ### Manual Installation
@@ -24,15 +24,12 @@ wget -qO- https://raw.githubusercontent.com/Harsh-2002/Sona/main/install.sh | sh
    chmod +x install.sh
    ```
 
-2. **Run the installer:**
-   ```bash
-   ./install.sh
-   ```
-
-3. **For system-wide access (optional):**
+2. **Run the installer (requires sudo):**
    ```bash
    sudo ./install.sh
    ```
+
+**Note**: The installer requires root privileges to install Sona system-wide in `/usr/local/bin/`, making it accessible from anywhere on your system.
 
 ## 📥 Direct Downloads
 
