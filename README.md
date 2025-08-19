@@ -278,32 +278,25 @@ We're planning to add:
 - **Progress bars** - See how things are going
 - **Auto-updates** - Sona updates itself automatically
 
-## 📦 Automated Releases
+## 🚀 Version Management
 
-When we create a new version, GitHub automatically:
-- Builds Sona for all platforms (Linux, macOS, Windows)
-- Creates a new release with all binaries
-- Generates checksums for security
-- Makes it easy to download the right version for your system
+Sona automatically manages versions and releases. When we create a new version:
 
-### 🚀 Creating Releases
+1. **Create the version** - `./scripts/release.sh 1.0.0`
+2. **GitHub Actions** - Automatically builds for all platforms
+3. **MinIO Upload** - Binaries uploaded to your S3 bucket
+4. **GitHub Release** - New release with all platform binaries
 
-Use our simple release script:
+### Creating a Release
+
 ```bash
-# Patch release (1.0.0 → 1.0.1)
-./scripts/release.sh patch
+# Create and push a new version
+./scripts/release.sh 1.0.0
 
-# Minor release (1.0.0 → 1.1.0)  
-./scripts/release.sh minor
-
-# Major release (1.0.0 → 2.0.0)
-./scripts/release.sh major
-```
-
-Or manually with git:
-```bash
-git tag v1.0.0
-git push origin v1.0.0
+# This will:
+# - Create git tag v1.0.0
+# - Push to GitHub
+# - Trigger automated build and upload
 ```
 
 ## 🤝 Want to Help?

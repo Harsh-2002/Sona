@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Sona Release Script
-# Usage: ./scripts/release.sh [patch|minor|major] [message]
+# Simple release script for Sona
+# This creates a git tag and pushes it to trigger the GitHub workflow
 
 set -e
 
@@ -9,96 +9,57 @@ set -e
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# Function to print colored output
-print_status() {
-    echo -e "${BLUE}[INFO]${NC} $1"
-}
-
-print_success() {
-    echo -e "${GREEN}[SUCCESS]${NC} $1"
-}
-
-print_warning() {
-    echo -e "${YELLOW}[WARNING]${NC} $1"
-}
-
-print_error() {
-    echo -e "${RED}[ERROR]${NC} $1"
-}
-
-# Check if we're in a git repository
-if ! git rev-parse --git-dir > /dev/null 2>&1; then
-    print_error "Not in a git repository!"
+# Check if version is provided
+if [ -z "$1" ]; then
+    echo -e "${RED}Error: Please provide a version number${NC}"
+    echo -e "Usage: $0 <version>"
+    echo -e "Example: $0 1.0.0"
     exit 1
 fi
 
-# Check if we have uncommitted changes
-if ! git diff-index --quiet HEAD --; then
-    print_warning "You have uncommitted changes. Please commit or stash them first."
+VERSION=$1
+TAG="v$VERSION"
+
+echo -e "${GREEN}🚀 Creating release for Sona $VERSION${NC}"
+
+# Check if working directory is clean
+if [ -n "$(git status --porcelain)" ]; then
+    echo -e "${RED}Error: Working directory is not clean. Please commit or stash changes first.${NC}"
     git status --short
     exit 1
 fi
 
-# Get current version from git tags
-CURRENT_VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
-print_status "Current version: $CURRENT_VERSION"
+# Check if we're on main branch
+CURRENT_BRANCH=$(git branch --show-current)
+if [ "$CURRENT_BRANCH" != "main" ]; then
+    echo -e "${YELLOW}Warning: You're not on the main branch (current: $CURRENT_BRANCH)${NC}"
+    read -p "Continue anyway? (y/N): " -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        echo -e "${RED}Release cancelled.${NC}"
+        exit 1
+    fi
+fi
 
-# Parse version components
-VERSION_TYPE=${1:-patch}
-RELEASE_MESSAGE=${2:-"Release $VERSION_TYPE"}
-
-# Validate version type
-if [[ ! "$VERSION_TYPE" =~ ^(patch|minor|major)$ ]]; then
-    print_error "Invalid version type. Use: patch, minor, or major"
+# Check if tag already exists
+if git tag -l | grep -q "^$TAG$"; then
+    echo -e "${RED}Error: Tag $TAG already exists${NC}"
     exit 1
 fi
 
-# Extract version numbers
-CURRENT_MAJOR=$(echo $CURRENT_VERSION | sed 's/v\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\)/\1/')
-CURRENT_MINOR=$(echo $CURRENT_VERSION | sed 's/v\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\)/\2/')
-CURRENT_PATCH=$(echo $CURRENT_VERSION | sed 's/v\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\)/\3/')
+echo -e "${YELLOW}📝 Creating tag $TAG...${NC}"
+git tag -a "$TAG" -m "Release $TAG"
 
-# Calculate new version
-case $VERSION_TYPE in
-    patch)
-        NEW_PATCH=$((CURRENT_PATCH + 1))
-        NEW_VERSION="v$CURRENT_MAJOR.$CURRENT_MINOR.$NEW_PATCH"
-        ;;
-    minor)
-        NEW_MINOR=$((CURRENT_MINOR + 1))
-        NEW_VERSION="v$CURRENT_MAJOR.$NEW_MINOR.0"
-        ;;
-    major)
-        NEW_MAJOR=$((CURRENT_MAJOR + 1))
-        NEW_VERSION="v$NEW_MAJOR.0.0"
-        ;;
-esac
+echo -e "${YELLOW}📤 Pushing tag to remote...${NC}"
+git push origin "$TAG"
 
-print_status "New version will be: $NEW_VERSION"
-
-# Confirm release
-read -p "Do you want to create release $NEW_VERSION? (y/N): " -n 1 -r
-echo
-if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-    print_warning "Release cancelled."
-    exit 0
-fi
-
-# Create and push tag
-print_status "Creating tag $NEW_VERSION..."
-git tag -a "$NEW_VERSION" -m "$RELEASE_MESSAGE"
-
-print_status "Pushing tag to remote..."
-git push origin "$NEW_VERSION"
-
-print_success "Release $NEW_VERSION created and pushed!"
-print_status "GitHub Actions will now automatically:"
-print_status "  - Build Sona for all platforms"
-print_status "  - Create a new release"
-print_status "  - Upload all binaries"
-print_status ""
-print_status "Check the Actions tab in your GitHub repository to monitor progress."
-print_status "Release will be available at: https://github.com/$(git config --get remote.origin.url | sed 's/.*github.com[:/]\([^/]*\/[^/]*\).*/\1/')/releases/tag/$NEW_VERSION"
+echo -e "${GREEN}✅ Release $TAG created and pushed!${NC}"
+echo -e "${YELLOW}📋 The GitHub workflow will now:${NC}"
+echo -e "   1. Build Sona for all platforms"
+echo -e "   2. Upload binaries to MinIO S3"
+echo -e "   3. Create a GitHub release"
+echo -e ""
+echo -e "${YELLOW}🔍 Check the progress at:${NC}"
+echo -e "   https://github.com/$(git config --get remote.origin.url | sed 's/.*github.com[:/]\([^/]*\/[^/]*\).*/\1/')/actions"

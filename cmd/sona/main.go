@@ -11,6 +11,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// Version will be set by the build process
+var version = "dev"
+
 func main() {
 	// Load environment variables from .env file if it exists
 	godotenv.Load()
@@ -19,8 +22,9 @@ func main() {
 	config.InitConfig()
 
 	var rootCmd = &cobra.Command{
-		Use:   "sona",
-		Short: "Audio transcription tool",
+		Use:     "sona",
+		Version: version,
+		Short:   "Audio transcription tool",
 		Long: `Sona - Audio Transcription Tool
 
 A CLI tool that converts audio files and YouTube videos to text transcripts using AssemblyAI.
