@@ -904,15 +904,28 @@
                 <h2>Usage</h2>
                 <p>How to use Sona for your transcription needs</p>
             </div>
+            
+            <h3 style="margin: 2rem 0 1rem 0; color: #222; text-align: center;">Basic Commands</h3>
+            
             <p>Set your API key:</p>
             <div class="code-container">
                 <div class="code">
-                    <code>export ASSEMBLYAI_API_KEY="your_api_key_here"</code>
+                    <code>sona config set api_key "your_api_key_here"</code>
                 </div>
                 <button class="copy-button" onclick="copyCode(this)">Copy</button>
             </div>
             
-            <p>Transcribe audio file:</p>
+            <p>Check system status:</p>
+            <div class="code-container">
+                <div class="code">
+                    <code>sona status</code>
+                </div>
+                <button class="copy-button" onclick="copyCode(this)">Copy</button>
+            </div>
+            
+            <h3 style="margin: 2rem 0 1rem 0; color: #222; text-align: center;">Transcription Commands</h3>
+            
+            <p>Transcribe local audio file:</p>
             <div class="code-container">
                 <div class="code">
                     <code>sona transcribe audio.mp3</code>
@@ -928,10 +941,62 @@
                 <button class="copy-button" onclick="copyCode(this)">Copy</button>
             </div>
             
-            <p>Interactive mode:</p>
+            <p>Transcribe with custom output path:</p>
+            <div class="code-container">
+                <div class="code">
+                    <code>sona transcribe audio.mp3 --output /path/to/output</code>
+                </div>
+                <button class="copy-button" onclick="copyCode(this)">Copy</button>
+            </div>
+            
+            <p>Transcribe with specific speech model:</p>
+            <div class="code-container">
+                <div class="code">
+                    <code>sona transcribe audio.mp3 --model slam-1</code>
+                </div>
+                <button class="copy-button" onclick="copyCode(this)">Copy</button>
+            </div>
+            
+            <h3 style="margin: 2rem 0 1rem 0; color: #222; text-align: center;">Interactive Mode</h3>
+            
+            <p>Start guided interactive mode:</p>
+            <div class="code-container">
+                <div class="code">
+                    <code>sona</code>
+                </div>
+                <button class="copy-button" onclick="copyCode(this)">Copy</button>
+            </div>
+            
+            <p>Or explicitly start interactive mode:</p>
             <div class="code-container">
                 <div class="code">
                     <code>sona interactive</code>
+                </div>
+                <button class="copy-button" onclick="copyCode(this)">Copy</button>
+            </div>
+            
+            <h3 style="margin: 2rem 0 1rem 0; color: #222; text-align: center;">Configuration Commands</h3>
+            
+            <p>View current configuration:</p>
+            <div class="code-container">
+                <div class="code">
+                    <code>sona config show</code>
+                </div>
+                <button class="copy-button" onclick="copyCode(this)">Copy</button>
+            </div>
+            
+            <p>Set output directory:</p>
+            <div class="code-container">
+                <div class="code">
+                    <code>sona config set output.default_path "/path/to/transcripts"</code>
+                </div>
+                <button class="copy-button" onclick="copyCode(this)">Copy</button>
+            </div>
+            
+            <p>Get help for any command:</p>
+            <div class="code-container">
+                <div class="code">
+                    <code>sona --help</code>
                 </div>
                 <button class="copy-button" onclick="copyCode(this)">Copy</button>
             </div>
@@ -948,21 +1013,70 @@
             <div class="card-grid">
                 <div class="card">
                     <div class="card-content">
-                        <h3>Timeout Error</h3>
-                        <p>Check internet connection and try again. The API might be temporarily slow or experiencing high traffic.</p>
-                    </div>
-                </div>
-                <div class="card">
-                    <div class="card-content">
                         <h3>API Key Issues</h3>
-                        <p>Verify your AssemblyAI API key is correct and has sufficient credits. Check for any spaces or special characters.</p>
+                        <p><strong>Problem:</strong> "API key not configured" or "Authentication failed"</p>
+                        <p><strong>Solution:</strong> Set your API key using <code>sona config set api_key "your_key"</code> or check the key is valid in your AssemblyAI dashboard.</p>
                     </div>
                 </div>
                 <div class="card">
                     <div class="card-content">
-                        <h3>File Permissions</h3>
-                        <p>Ensure audio file is readable and output directory is writable. Try running with elevated permissions if needed.</p>
+                        <h3>YouTube Download Failures</h3>
+                        <p><strong>Problem:</strong> "yt-dlp not found" or download errors</p>
+                        <p><strong>Solution:</strong> The app will auto-install yt-dlp. If it fails, run <code>sona status</code> to check system status and ensure you have curl/wget available.</p>
                     </div>
+                </div>
+                <div class="card">
+                    <div class="card-content">
+                        <h3>Audio Conversion Errors</h3>
+                        <p><strong>Problem:</strong> "FFmpeg not found" or "transcoding failed"</p>
+                        <p><strong>Solution:</strong> The app will auto-install FFmpeg. Check <code>sona status</code> to verify FFmpeg availability. Ensure audio files are valid and not corrupted.</p>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-content">
+                        <h3>File Permission Issues</h3>
+                        <p><strong>Problem:</strong> "Permission denied" or "cannot create file"</p>
+                        <p><strong>Solution:</strong> Ensure output directory is writable. Run <code>chmod 755 /path/to/output</code> or use <code>sudo</code> if installing system-wide.</p>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-content">
+                        <h3>Network Timeouts</h3>
+                        <p><strong>Problem:</strong> "Request timeout" or "connection failed"</p>
+                        <p><strong>Solution:</strong> Check internet connection, firewall settings, and try again. AssemblyAI API might be experiencing high traffic.</p>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-content">
+                        <h3>Unsupported Audio Formats</h3>
+                        <p><strong>Problem:</strong> "Unsupported format" or "cannot process file"</p>
+                        <p><strong>Solution:</strong> Convert audio to common formats (MP3, WAV, M4A) first. The app will attempt automatic conversion using FFmpeg.</p>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-content">
+                        <h3>Configuration File Issues</h3>
+                        <p><strong>Problem:</strong> "Config file not found" or settings not saved</p>
+                        <p><strong>Solution:</strong> Run <code>sona config show</code> to verify configuration. Check permissions on <code>~/.sona/</code> directory.</p>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-content">
+                        <h3>Memory/Storage Issues</h3>
+                        <p><strong>Problem:</strong> "Out of memory" or "disk space full"</p>
+                        <p><strong>Solution:</strong> Ensure sufficient disk space for audio files and transcripts. Large video files may require significant temporary storage.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="margin-top: 3rem; text-align: center;">
+                <h3 style="color: #222; margin-bottom: 1rem;">Still Having Issues?</h3>
+                <p style="color: #666; margin-bottom: 1.5rem;">Run <code>sona status</code> to check your system configuration and dependency status.</p>
+                <div class="code-container" style="max-width: 400px; margin: 0 auto;">
+                    <div class="code">
+                        <code>sona status</code>
+                    </div>
+                    <button class="copy-button" onclick="copyCode(this)">Copy</button>
                 </div>
             </div>
         </div>

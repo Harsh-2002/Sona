@@ -6,6 +6,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"strings"
 	"time"
 
@@ -143,7 +144,7 @@ func processLocalAudio(filePath string, apiKey string) error {
 // convertAudioToMP3 converts audio file to MP3 format for better compatibility
 func convertAudioToMP3(inputPath string, outputDir string) (string, error) {
 	// Check if ffmpeg is installed
-	ffmpegPath, err := findFFmpegBinary()
+	ffmpegPath, err := FindBinary("ffmpeg")
 	if err != nil {
 		// Try to install ffmpeg
 		fmt.Println("FFmpeg not found, attempting to install...")
@@ -152,7 +153,7 @@ func convertAudioToMP3(inputPath string, outputDir string) (string, error) {
 		}
 
 		// Check again
-		ffmpegPath, err = findFFmpegBinary()
+		ffmpegPath, err = FindBinary("ffmpeg")
 		if err != nil {
 			return "", fmt.Errorf("FFmpeg not found after installation attempt: %v", err)
 		}
@@ -191,24 +192,24 @@ func convertAudioToMP3(inputPath string, outputDir string) (string, error) {
 	return outputPath, nil
 }
 
-// findFFmpegBinary finds FFmpeg binary in PATH or user's bin directory
-func findFFmpegBinary() (string, error) {
+// FindBinary finds FFmpeg binary in PATH or user's bin directory
+func FindBinary(binaryName string) (string, error) {
 	// First check if it's in PATH
-	if path, err := exec.LookPath("ffmpeg"); err == nil {
+	if path, err := exec.LookPath(binaryName); err == nil {
 		return path, nil
 	}
 
 	// Check user's bin directory
 	homeDir, err := os.UserHomeDir()
 	if err == nil {
-		userBinPath := filepath.Join(homeDir, "bin", "ffmpeg")
+		userBinPath := filepath.Join(homeDir, "bin", binaryName)
 		if _, err := os.Stat(userBinPath); err == nil {
 			return userBinPath, nil
 		}
 	}
 
 	// Not found
-	return "", fmt.Errorf("ffmpeg not found")
+	return "", fmt.Errorf("%s not found", binaryName)
 }
 
 // installFFmpeg attempts to install FFmpeg
@@ -282,6 +283,30 @@ func tryPackageManagers() error {
 func downloadFFmpegBinary() error {
 	fmt.Println("Attempting to download FFmpeg binary...")
 
+	// Determine platform and architecture
+	platform := getPlatform()
+	arch := getArchitecture()
+
+	fmt.Printf("Detected platform: %s, architecture: %s\n", platform, arch)
+
+	// Get the appropriate download URL for this platform
+	downloadURL, filename := getFFmpegDownloadURL(platform, arch)
+	if downloadURL == "" {
+		return fmt.Errorf("unsupported platform: %s/%s", platform, arch)
+	}
+
+	// Check if curl or wget is available
+	var downloadCmd *exec.Cmd
+	if _, err := exec.LookPath("curl"); err == nil {
+		downloadCmd = exec.Command("curl", "-L", "-o", filename, downloadURL)
+	} else if _, err := exec.LookPath("wget"); err == nil {
+		downloadCmd = exec.Command("wget", "-O", filename, downloadURL)
+	} else {
+		return fmt.Errorf("neither curl nor wget found - cannot download FFmpeg")
+	}
+
+	fmt.Printf("Downloading FFmpeg binary from: %s\n", downloadURL)
+
 	// Get user's bin directory
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
@@ -293,20 +318,163 @@ func downloadFFmpegBinary() error {
 		return fmt.Errorf("failed to create bin directory: %v", err)
 	}
 
-	// For now, provide instructions rather than attempting binary download
-	// (FFmpeg binary downloads are complex due to licensing and platform variations)
-	fmt.Printf("\n")
-	fmt.Printf("Unable to install FFmpeg automatically.\n")
-	fmt.Printf("Please install FFmpeg manually:\n")
-	fmt.Printf("\n")
-	fmt.Printf("For macOS: brew install ffmpeg\n")
-	fmt.Printf("For Ubuntu/Debian: sudo apt-get install ffmpeg\n")
-	fmt.Printf("For CentOS/RHEL: sudo yum install ffmpeg\n")
-	fmt.Printf("For Windows: Download from https://ffmpeg.org/download.html\n")
-	fmt.Printf("\n")
-	fmt.Printf("Or add FFmpeg to your PATH if already installed.\n")
+	// Change to user's bin directory for download
+	originalDir, err := os.Getwd()
+	if err != nil {
+		return fmt.Errorf("failed to get current directory: %v", err)
+	}
 
-	return fmt.Errorf("FFmpeg installation requires manual intervention")
+	if err := os.Chdir(userBin); err != nil {
+		return fmt.Errorf("failed to change to bin directory: %v", err)
+	}
+	defer os.Chdir(originalDir)
+
+	// Download the binary
+	if err := downloadCmd.Run(); err != nil {
+		return fmt.Errorf("failed to download FFmpeg: %v", err)
+	}
+
+	// Extract if it's a compressed file
+	if strings.HasSuffix(filename, ".tar.gz") || strings.HasSuffix(filename, ".tar.xz") {
+		if err := extractFFmpegArchive(filename); err != nil {
+			return fmt.Errorf("failed to extract FFmpeg archive: %v", err)
+		}
+	}
+
+	// Make it executable
+	targetPath := filepath.Join(userBin, "ffmpeg")
+	if err := os.Chmod(targetPath, 0755); err != nil {
+		return fmt.Errorf("failed to make FFmpeg executable: %v", err)
+	}
+
+	fmt.Printf("✅ FFmpeg installed successfully to: %s\n", targetPath)
+
+	// Try to add to PATH for current session
+	if err := addToPath(userBin); err != nil {
+		fmt.Printf("⚠️  Warning: Could not update PATH. You may need to restart your terminal or run: export PATH=$PATH:%s\n", userBin)
+	}
+
+	return nil
+}
+
+// getPlatform returns the current platform
+func getPlatform() string {
+	switch runtime.GOOS {
+	case "darwin":
+		return "macos"
+	case "linux":
+		return "linux"
+	case "windows":
+		return "windows"
+	default:
+		return runtime.GOOS
+	}
+}
+
+// getArchitecture returns the current architecture
+func getArchitecture() string {
+	switch runtime.GOARCH {
+	case "amd64":
+		return "x86_64"
+	case "arm64":
+		return "aarch64"
+	case "386":
+		return "i386"
+	default:
+		return runtime.GOARCH
+	}
+}
+
+// getFFmpegDownloadURL returns the appropriate download URL and filename for the platform
+func getFFmpegDownloadURL(platform, arch string) (string, string) {
+	// Use static builds from BtbN's repository (more reliable than official builds)
+	baseURL := "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest"
+
+	switch platform {
+	case "macos":
+		if arch == "x86_64" {
+			return baseURL + "/ffmpeg-master-latest-macos64-gpl.tar.xz", "ffmpeg-macos64.tar.xz"
+		} else if arch == "aarch64" {
+			return baseURL + "/ffmpeg-master-latest-macosarm64-gpl.tar.xz", "ffmpeg-macosarm64.tar.xz"
+		}
+	case "linux":
+		if arch == "x86_64" {
+			return baseURL + "/ffmpeg-master-latest-linux64-gpl.tar.xz", "ffmpeg-linux64.tar.xz"
+		} else if arch == "aarch64" {
+			return baseURL + "/ffmpeg-master-latest-linuxarm64-gpl.tar.xz", "ffmpeg-linuxarm64.tar.xz"
+		}
+	case "windows":
+		if arch == "x86_64" {
+			return baseURL + "/ffmpeg-master-latest-win64-gpl.zip", "ffmpeg-win64.zip"
+		} else if arch == "aarch64" {
+			return baseURL + "/ffmpeg-master-latest-winarm64-gpl.zip", "ffmpeg-winarm64.zip"
+		}
+	}
+
+	return "", ""
+}
+
+// extractFFmpegArchive extracts the downloaded FFmpeg archive
+func extractFFmpegArchive(filename string) error {
+	fmt.Printf("Extracting %s...\n", filename)
+
+	var cmd *exec.Cmd
+
+	if strings.HasSuffix(filename, ".tar.gz") {
+		cmd = exec.Command("tar", "-xzf", filename)
+	} else if strings.HasSuffix(filename, ".tar.xz") {
+		cmd = exec.Command("tar", "-xf", filename)
+	} else if strings.HasSuffix(filename, ".zip") {
+		cmd = exec.Command("unzip", filename)
+	} else {
+		return fmt.Errorf("unsupported archive format: %s", filename)
+	}
+
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("failed to extract archive: %v", err)
+	}
+
+	// Find the ffmpeg binary in the extracted directory
+	entries, err := os.ReadDir(".")
+	if err != nil {
+		return fmt.Errorf("failed to read directory: %v", err)
+	}
+
+	// Look for the ffmpeg binary
+	for _, entry := range entries {
+		if entry.IsDir() && strings.Contains(entry.Name(), "ffmpeg") {
+			// Check if there's a bin subdirectory
+			binPath := filepath.Join(entry.Name(), "bin", "ffmpeg")
+			if _, err := os.Stat(binPath); err == nil {
+				// Move the binary to the user's bin directory
+				finalPath := filepath.Join(".", "ffmpeg")
+				if err := os.Rename(binPath, finalPath); err != nil {
+					return fmt.Errorf("failed to move FFmpeg binary: %v", err)
+				}
+
+				// Clean up extracted files
+				os.RemoveAll(entry.Name())
+				os.Remove(filename)
+				return nil
+			}
+		}
+	}
+
+	return fmt.Errorf("could not find FFmpeg binary in extracted archive")
+}
+
+// addToPath attempts to add the bin directory to PATH for the current session
+func addToPath(binDir string) error {
+	// Get current PATH
+	currentPath := os.Getenv("PATH")
+	if currentPath == "" {
+		currentPath = binDir
+	} else {
+		currentPath = binDir + ":" + currentPath
+	}
+
+	// Set PATH for current process
+	return os.Setenv("PATH", currentPath)
 }
 
 func transcribeAudio(audioPath string, apiKey string) (string, error) {

@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 	"time"
@@ -16,7 +17,7 @@ func DownloadAudio(url string, outputDir string) (string, error) {
 	fmt.Println("Downloading audio from YouTube...")
 
 	// Check if yt-dlp is installed
-	ytdlpPath, err := findBinary("yt-dlp")
+	ytdlpPath, err := FindBinary("yt-dlp")
 	if err != nil {
 		// Try to install yt-dlp
 		fmt.Println("yt-dlp not found, attempting to install...")
@@ -25,7 +26,7 @@ func DownloadAudio(url string, outputDir string) (string, error) {
 		}
 
 		// Check again
-		ytdlpPath, err = findBinary("yt-dlp")
+		ytdlpPath, err = FindBinary("yt-dlp")
 		if err != nil {
 			return "", fmt.Errorf("yt-dlp not found after installation attempt: %v", err)
 		}
@@ -98,7 +99,7 @@ func formatDuration(duration string) string {
 	if seconds, err := strconv.Atoi(duration); err == nil {
 		minutes := seconds / 60
 		remainingSeconds := seconds % 60
-		
+
 		if minutes > 0 {
 			if remainingSeconds > 0 {
 				return fmt.Sprintf("%dm %ds", minutes, remainingSeconds)
@@ -107,13 +108,13 @@ func formatDuration(duration string) string {
 		}
 		return fmt.Sprintf("%ds", remainingSeconds)
 	}
-	
+
 	// If parsing fails, return as-is (might already be formatted)
 	return duration
 }
 
-// findBinary finds a binary in PATH or user's bin directory
-func findBinary(binaryName string) (string, error) {
+// FindBinary finds a binary in PATH or user's bin directory
+func FindBinary(binaryName string) (string, error) {
 	// First check if it's in PATH
 	if path, err := exec.LookPath(binaryName); err == nil {
 		return path, nil
@@ -167,16 +168,26 @@ func tryPipInstall() error {
 	return fmt.Errorf("pip installation failed")
 }
 
-// downloadYtDlpBinary downloads yt-dlp binary directly
+// downloadYtDlpBinary downloads yt-dlp binary directly for the current platform
 func downloadYtDlpBinary() error {
+	// Determine platform and architecture
+	platform := getPlatform()
+	arch := getArchitecture()
+
+	fmt.Printf("Detected platform: %s, architecture: %s\n", platform, arch)
+
+	// Get the appropriate download URL for this platform
+	downloadURL := getYtDlpDownloadURL(platform, arch)
+	if downloadURL == "" {
+		return fmt.Errorf("unsupported platform: %s/%s", platform, arch)
+	}
+
 	// Check if curl or wget is available
 	var downloadCmd *exec.Cmd
 	if _, err := exec.LookPath("curl"); err == nil {
-		downloadCmd = exec.Command("curl", "-L",
-			"https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp")
+		downloadCmd = exec.Command("curl", "-L", "-o", "yt-dlp", downloadURL)
 	} else if _, err := exec.LookPath("wget"); err == nil {
-		downloadCmd = exec.Command("wget", "-O", "-",
-			"https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp")
+		downloadCmd = exec.Command("wget", "-O", "yt-dlp", downloadURL)
 	} else {
 		return fmt.Errorf("neither curl nor wget found - cannot download yt-dlp")
 	}
@@ -194,32 +205,104 @@ func downloadYtDlpBinary() error {
 		return fmt.Errorf("failed to create bin directory: %v", err)
 	}
 
-	// Download directly to target location
-	targetPath := filepath.Join(userBin, "yt-dlp")
-
-	if downloadCmd.Args[0] == "curl" {
-		downloadCmd.Args = append(downloadCmd.Args, "-o", targetPath)
-	} else {
-		// For wget, we already set -O -
-		outputFile, err := os.Create(targetPath)
-		if err != nil {
-			return fmt.Errorf("failed to create target file: %v", err)
-		}
-		defer outputFile.Close()
-		downloadCmd.Stdout = outputFile
+	// Change to user's bin directory for download
+	originalDir, err := os.Getwd()
+	if err != nil {
+		return fmt.Errorf("failed to get current directory: %v", err)
 	}
 
+	if err := os.Chdir(userBin); err != nil {
+		return fmt.Errorf("failed to change to bin directory: %v", err)
+	}
+	defer os.Chdir(originalDir)
+
+	// Download the binary
 	if err := downloadCmd.Run(); err != nil {
 		return fmt.Errorf("failed to download yt-dlp: %v", err)
 	}
 
 	// Make it executable
+	targetPath := filepath.Join(userBin, "yt-dlp")
 	if err := os.Chmod(targetPath, 0755); err != nil {
 		return fmt.Errorf("failed to make yt-dlp executable: %v", err)
 	}
 
 	fmt.Printf("✅ yt-dlp installed successfully to: %s\n", targetPath)
+
+	// Try to add to PATH for current session
+	if err := addToPath(userBin); err != nil {
+		fmt.Printf("⚠️  Warning: Could not update PATH. You may need to restart your terminal or run: export PATH=$PATH:%s\n", userBin)
+	}
+
 	return nil
+}
+
+// getPlatform returns the current platform
+func getPlatform() string {
+	switch runtime.GOOS {
+	case "darwin":
+		return "macos"
+	case "linux":
+		return "linux"
+	case "windows":
+		return "windows"
+	default:
+		return runtime.GOOS
+	}
+}
+
+// getArchitecture returns the current architecture
+func getArchitecture() string {
+	switch runtime.GOARCH {
+	case "amd64":
+		return "x86_64"
+	case "arm64":
+		return "aarch64"
+	case "386":
+		return "i386"
+	default:
+		return runtime.GOARCH
+	}
+}
+
+// getYtDlpDownloadURL returns the appropriate download URL for the platform
+func getYtDlpDownloadURL(platform, arch string) string {
+	baseURL := "https://github.com/yt-dlp/yt-dlp/releases/latest/download"
+
+	switch platform {
+	case "macos":
+		if arch == "x86_64" {
+			return baseURL + "/yt-dlp_macos"
+		} else if arch == "aarch64" {
+			return baseURL + "/yt-dlp_macos_arm64"
+		}
+	case "linux":
+		if arch == "x86_64" {
+			return baseURL + "/yt-dlp_linux"
+		} else if arch == "aarch64" {
+			return baseURL + "/yt-dlp_linux_aarch64"
+		}
+	case "windows":
+		if arch == "x86_64" {
+			return baseURL + "/yt-dlp.exe"
+		}
+	}
+
+	return ""
+}
+
+// addToPath attempts to add the bin directory to PATH for the current session
+func addToPath(binDir string) error {
+	// Get current PATH
+	currentPath := os.Getenv("PATH")
+	if currentPath == "" {
+		currentPath = binDir
+	} else {
+		currentPath = binDir + ":" + currentPath
+	}
+
+	// Set PATH for current process
+	return os.Setenv("PATH", currentPath)
 }
 
 // IsYouTubeURL checks if the given string is a YouTube URL
@@ -234,7 +317,7 @@ func getVideoInfo(url string) (string, string, error) {
 	defer cancel()
 
 	// Check if yt-dlp is installed
-	ytdlpPath, err := findBinary("yt-dlp")
+	ytdlpPath, err := FindBinary("yt-dlp")
 	if err != nil {
 		return "", "", fmt.Errorf("yt-dlp not found: %v", err)
 	}

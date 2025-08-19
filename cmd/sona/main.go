@@ -3,29 +3,22 @@ package main
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
-	"github.com/joho/godotenv"
 	"github.com/root/sona-ai/pkg/config"
 	"github.com/root/sona-ai/pkg/interactive"
 	"github.com/root/sona-ai/pkg/transcriber"
+	"github.com/root/sona-ai/pkg/youtube"
 	"github.com/spf13/cobra"
 )
 
 // Version will be set by the build process
 var version = "dev"
 
-func main() {
-	// Load environment variables from .env file if it exists
-	godotenv.Load()
-
-	// Initialize configuration
-	config.InitConfig()
-
-	var rootCmd = &cobra.Command{
-		Use:     "sona",
-		Version: version,
-		Short:   "Audio transcription tool",
-		Long: `Sona - Audio Transcription Tool
+var rootCmd = &cobra.Command{
+	Use:   "sona",
+	Short: "Audio Transcription Tool",
+	Long: `Sona - Audio Transcription Tool
 
 A CLI tool that converts audio files and YouTube videos to text transcripts using AssemblyAI.
 
@@ -34,19 +27,80 @@ Features:
 - Download and transcribe YouTube videos
 - Save transcripts to custom or default paths
 - Interactive mode for guided experience`,
-		// If no subcommand is provided, run interactive mode
-		Run: func(cmd *cobra.Command, args []string) {
-			interactive.InteractiveCmd.Run(cmd, args)
-		},
-	}
+	Run: func(cmd *cobra.Command, args []string) {
+		interactive.InteractiveCmd.Run(cmd, args)
+	},
+}
+
+func init() {
+	// Initialize configuration
+	config.InitConfig()
 
 	// Add commands
 	rootCmd.AddCommand(transcriber.TranscribeCmd)
 	rootCmd.AddCommand(config.ConfigCmd)
 	rootCmd.AddCommand(interactive.InteractiveCmd)
+	rootCmd.AddCommand(statusCmd)
+}
 
+var statusCmd = &cobra.Command{
+	Use:   "status",
+	Short: "Check system status and dependencies",
+	Long:  "Check the status of yt-dlp and FFmpeg dependencies and system configuration",
+	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Println("Sona System Status")
+		fmt.Println("==================")
+		
+		// Check yt-dlp
+		fmt.Println("\nYouTube Download (yt-dlp):")
+		if ytdlpPath, err := youtube.FindBinary("yt-dlp"); err == nil {
+			fmt.Printf("  Available at: %s\n", ytdlpPath)
+		} else {
+			fmt.Println("  Not found (will auto-install when needed)")
+		}
+		
+		// Check FFmpeg
+		fmt.Println("\nAudio Processing (FFmpeg):")
+		if ffmpegPath, err := transcriber.FindBinary("ffmpeg"); err == nil {
+			fmt.Printf("  Available at: %s\n", ffmpegPath)
+		} else {
+			fmt.Println("  Not found (will auto-install when needed)")
+		}
+		
+		// Check API key
+		fmt.Println("\nAssemblyAI API Key:")
+		apiKey := config.GetAPIKeyNoExit()
+		if apiKey != "" {
+			fmt.Println("  Configured")
+		} else {
+			fmt.Println("  Not configured")
+			fmt.Println("  Run 'sona config set api_key <YOUR_KEY>' to set it")
+		}
+		
+		// Check output directory
+		fmt.Println("\nDefault Output Directory:")
+		defaultPath := config.GetOutputPath()
+		fmt.Printf("  %s\n", defaultPath)
+		
+		// Check if directory exists and is writable
+		if info, err := os.Stat(defaultPath); err == nil && info.IsDir() {
+			if testFile := os.WriteFile(filepath.Join(defaultPath, ".test"), []byte("test"), 0644); testFile == nil {
+				os.Remove(filepath.Join(defaultPath, ".test"))
+				fmt.Println("  Directory exists and is writable")
+			} else {
+				fmt.Println("  Directory exists but may not be writable")
+			}
+		} else {
+			fmt.Println("  Directory does not exist (will be created automatically)")
+		}
+		
+		fmt.Println("\nStatus check completed!")
+	},
+}
+
+func main() {
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		fmt.Println(err)
 		os.Exit(1)
 	}
 }
