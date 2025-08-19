@@ -62,15 +62,19 @@ jobs:
           
           echo "Build completed: ${{ matrix.binary_name }}"
 
+      - name: Setup MinIO Client
+        run: |
+          wget https://dl.min.io/client/mc/release/linux-amd64/mc
+          chmod +x mc
+          sudo mv mc /usr/local/bin/
+
       - name: Upload to MinIO
-        uses: lovellfelix/minio-deploy-action@v1
-        with:
-          endpoint: ${{ secrets.MINIO_ENDPOINT }}
-          access_key: ${{ secrets.MINIO_ACCESS_KEY }}
-          secret_key: ${{ secrets.MINIO_SECRET_KEY }}
-          bucket: ${{ env.MINIO_BUCKET }}
-          source_dir: '.'
-          target_dir: '${{ env.MINIO_FOLDER }}'
-          include: |
-            ${{ matrix.binary_name }}
-            ${{ matrix.binary_name }}.sha256
+        run: |
+          # Configure MinIO client
+          mc alias set sona ${{ secrets.MINIO_ENDPOINT }} ${{ secrets.MINIO_ACCESS_KEY }} ${{ secrets.MINIO_SECRET_KEY }}
+          
+          # Upload binary and checksum
+          mc cp ${{ matrix.binary_name }} sona/${{ env.MINIO_BUCKET }}/${{ env.MINIO_FOLDER }}/
+          mc cp ${{ matrix.binary_name }}.sha256 sona/${{ env.MINIO_BUCKET }}/${{ env.MINIO_FOLDER }}/
+          
+          echo "Uploaded ${{ matrix.binary_name }} to MinIO"
