@@ -269,14 +269,6 @@ sona config set api_key "your_key_here"
 - **Size**: Up to 1GB
 - **Length**: At least 160ms
 
-## 🚀 Version Management
-
-Sona automatically manages versions and releases. When we create a new version:
-
-1. **Create the version** - `./scripts/version.sh create patch`
-2. **GitHub Actions** - Automatically builds for all platforms
-3. **New release** - Ready to download for Linux, macOS, and Windows
-
 ## 🚀 What's Coming Next
 
 We're planning to add:
@@ -284,7 +276,6 @@ We're planning to add:
 - **Batch processing** - Handle multiple files at once
 - **More output formats** - JSON, SRT, VTT files
 - **Progress bars** - See how things are going
-- **Resume downloads** - Pick up where you left off
 - **Auto-updates** - Sona updates itself automatically
 
 ## 🤝 Want to Help?
@@ -305,9 +296,3 @@ This project is licensed under the MIT License.
 - [yt-dlp](https://github.com/yt-dlp/yt-dlp) for YouTube downloads
 - [Cobra](https://github.com/spf13/cobra) for the command-line interface
 - [Viper](https://github.com/spf13/viper) for configuration management
-
-## 📞 Need Help?
-
-- Check the troubleshooting section above
-- Look for existing issues on GitHub
-- Create a new issue if you can't find an answer
