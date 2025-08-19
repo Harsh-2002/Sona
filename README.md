@@ -204,6 +204,8 @@ The log file contains detailed information about:
 
 **macOS Note:** On macOS, Sona automatically installs both `ffmpeg` and `ffprobe` from evermeet.cx, which are required for YouTube audio extraction.
 
+**Path Consistency:** On all Unix-like systems (Linux, macOS, BSD), dependencies are installed to `~/bin/` for consistent behavior across platforms.
+
 ### Updating Sona
 
 **Automatic updates:**

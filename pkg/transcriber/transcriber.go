@@ -252,12 +252,14 @@ func FindBinary(binaryName string) (string, error) {
 		return path, nil
 	}
 
-	// Check user's bin directory
-	homeDir, err := os.UserHomeDir()
-	if err == nil {
-		userBinPath := filepath.Join(homeDir, "bin", binaryName)
-		if _, err := os.Stat(userBinPath); err == nil {
-			return userBinPath, nil
+	// For Unix-like systems, check user's bin directory
+	if runtime.GOOS != "windows" {
+		homeDir, err := os.UserHomeDir()
+		if err == nil {
+			userBinPath := filepath.Join(homeDir, "bin", binaryName)
+			if _, err := os.Stat(userBinPath); err == nil {
+				return userBinPath, nil
+			}
 		}
 	}
 
@@ -294,8 +296,13 @@ func downloadFFmpegBinary() error {
 
 	logger.LogInfo("Downloading FFmpeg from: %s", downloadURL)
 
-	// Create bin directory if it doesn't exist
-	binDir := filepath.Join(os.Getenv("HOME"), "bin")
+	// Create bin directory if it doesn't exist (consistent path across Unix-like systems)
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return fmt.Errorf("failed to get home directory: %v", err)
+	}
+
+	binDir := filepath.Join(homeDir, "bin")
 	if err := os.MkdirAll(binDir, 0755); err != nil {
 		return fmt.Errorf("failed to create bin directory: %v", err)
 	}
@@ -330,7 +337,12 @@ func downloadFFmpegBinary() error {
 func downloadMacOSFFmpeg() error {
 	logger.LogInfo("Downloading FFmpeg and ffprobe for macOS from evermeet.cx")
 
-	binDir := filepath.Join(os.Getenv("HOME"), "bin")
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return fmt.Errorf("failed to get home directory: %v", err)
+	}
+
+	binDir := filepath.Join(homeDir, "bin")
 	if err := os.MkdirAll(binDir, 0755); err != nil {
 		return fmt.Errorf("failed to create bin directory: %v", err)
 	}

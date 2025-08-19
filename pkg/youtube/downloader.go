@@ -40,6 +40,23 @@ func DownloadAudio(url string, outputDir string) (string, error) {
 	outputFilename := "youtube_audio.mp3"
 	outputPath := filepath.Join(outputDir, outputFilename)
 
+	// Get ffmpeg location for yt-dlp (consistent across Unix-like systems)
+	ffmpegPath := ""
+
+	// First try system PATH
+	if path, err := exec.LookPath("ffmpeg"); err == nil {
+		ffmpegPath = path
+	} else {
+		// For Unix-like systems, try user's bin directory
+		if runtime.GOOS != "windows" {
+			homeDir, _ := os.UserHomeDir()
+			userBinPath := filepath.Join(homeDir, "bin", "ffmpeg")
+			if _, err := os.Stat(userBinPath); err == nil {
+				ffmpegPath = userBinPath
+			}
+		}
+	}
+
 	// Build yt-dlp command with additional options for better compatibility
 	args := []string{
 		"--extract-audio",
@@ -48,9 +65,16 @@ func DownloadAudio(url string, outputDir string) (string, error) {
 		"--output", outputPath,
 		"--no-playlist",
 		"--force-generic-extractor",
-		"--extractor-args", "youtube:player_client=android",
-		url,
+		"--extractor-args", "youtube:player_client=web",
 	}
+
+	// Add ffmpeg location if found
+	if ffmpegPath != "" {
+		args = append(args, "--ffmpeg-location", ffmpegPath)
+		logger.LogInfo("Using ffmpeg at: %s", ffmpegPath)
+	}
+
+	args = append(args, url)
 
 	logger.LogInfo("Running yt-dlp command: yt-dlp %v", args)
 
@@ -71,8 +95,14 @@ func DownloadAudio(url string, outputDir string) (string, error) {
 			"--output", outputPath,
 			"--no-playlist",
 			"--extractor-args", "youtube:player_client=web",
-			url,
 		}
+
+		// Add ffmpeg location to fallback as well
+		if ffmpegPath != "" {
+			fallbackArgs = append(fallbackArgs, "--ffmpeg-location", ffmpegPath)
+		}
+
+		fallbackArgs = append(fallbackArgs, url)
 
 		cmd = exec.Command(ytdlpPath, fallbackArgs...)
 		cmd.Stderr = &stderr
@@ -96,12 +126,14 @@ func FindBinary(binaryName string) (string, error) {
 		return path, nil
 	}
 
-	// Check user's bin directory
-	homeDir, err := os.UserHomeDir()
-	if err == nil {
-		userBinPath := filepath.Join(homeDir, "bin", binaryName)
-		if _, err := os.Stat(userBinPath); err == nil {
-			return userBinPath, nil
+	// For Unix-like systems, check user's bin directory
+	if runtime.GOOS != "windows" {
+		homeDir, err := os.UserHomeDir()
+		if err == nil {
+			userBinPath := filepath.Join(homeDir, "bin", binaryName)
+			if _, err := os.Stat(userBinPath); err == nil {
+				return userBinPath, nil
+			}
 		}
 	}
 
@@ -128,8 +160,13 @@ func downloadYtDlpBinary() error {
 
 	logger.LogInfo("Download URL: %s", downloadURL)
 
-	// Create bin directory if it doesn't exist
-	binDir := filepath.Join(os.Getenv("HOME"), "bin")
+	// Create bin directory if it doesn't exist (consistent path across Unix-like systems)
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return fmt.Errorf("failed to get home directory: %v", err)
+	}
+
+	binDir := filepath.Join(homeDir, "bin")
 	if err := os.MkdirAll(binDir, 0755); err != nil {
 		return fmt.Errorf("failed to create bin directory: %v", err)
 	}
