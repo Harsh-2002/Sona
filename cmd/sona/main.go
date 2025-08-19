@@ -20,8 +20,8 @@ func main() {
 
 	var rootCmd = &cobra.Command{
 		Use:   "sona",
-		Short: "audio transcription tool",
-		Long: `sona - audio transcription tool
+		Short: "Audio transcription tool",
+		Long: `Sona - Audio Transcription Tool
 
 A CLI tool that converts audio files and YouTube videos to text transcripts using AssemblyAI.
 

@@ -1,4 +1,4 @@
-# sona - audio transcription tool
+# Sona - Audio Transcription Tool
 
 A powerful, **completely independent** CLI tool that converts audio files and YouTube videos to text transcripts using AssemblyAI's advanced speech recognition technology.
 
@@ -26,7 +26,7 @@ A powerful, **completely independent** CLI tool that converts audio files and Yo
 # Option A: Environment variable
 export ASSEMBLYAI_API_KEY="your_api_key_here"
 
-# Option B: Using the tool
+# Option B: Using Sona
 ./sona config set api_key "your_api_key_here"
 ```
 
@@ -180,7 +180,7 @@ go mod tidy
 # Build the binary
 go build -o build/sona cmd/sona/main.go
 
-# Run
+# Run Sona
 ./build/sona --help
 ```
 
@@ -220,11 +220,13 @@ export ASSEMBLYAI_API_KEY="your_api_key_here"
 
 #### 2. Transcribe YouTube Video
 ```bash
+# Use Sona to transcribe YouTube video
 ./sona transcribe "https://youtube.com/watch?v=dQw4w9WgXcQ"
 ```
 
 #### 3. Transcribe Local Audio File
 ```bash
+# Use Sona to transcribe local audio
 ./sona transcribe "./meeting_recording.mp3"
 ```
 
@@ -324,7 +326,7 @@ Override with `--output` flag.
 
 ## 🔧 Configuration
 
-The tool creates a config file at `~/.sona/config.toml`:
+Sona creates a config file at `~/.sona/config.toml`:
 
 ```toml
 [assemblyai]
@@ -351,17 +353,17 @@ API keys are automatically encrypted using AES-256-GCM encryption with a system-
 ```bash
 # Set your API key
 export ASSEMBLYAI_API_KEY="your_key_here"
-# or
+# or use Sona's config command
 sona config set api_key "your_key_here"
 ```
 
 **YouTube Download Fails**
 - Check internet connection
 - Video may be private/restricted
-- Ensure yt-dlp is installed or can be auto-installed
+- Sona will auto-install yt-dlp if not found
 
 **Audio Format Issues**
-- The tool will attempt to convert audio to MP3 format using FFmpeg
+- Sona will attempt to convert audio to MP3 format using FFmpeg
 - If conversion fails, try converting the file manually to MP3 format
 - Some DRM-protected or specialized formats may not be convertible
 
@@ -378,7 +380,7 @@ sona config set api_key "your_key_here"
 
 ## 🚀 Version Management
 
-We use semantic versioning (SemVer) for releases. The project includes a version management script:
+Sona uses semantic versioning (SemVer) for releases. The project includes a version management script:
 
 ```bash
 # Show current version
