@@ -1,4 +1,4 @@
-# Sona - Audio to Text Transcript Converter
+# sona - audio transcription tool
 
 A powerful, **completely independent** CLI tool that converts audio files and YouTube videos to text transcripts using AssemblyAI's advanced speech recognition technology.
 

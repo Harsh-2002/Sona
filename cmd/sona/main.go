@@ -5,10 +5,10 @@ import (
 	"os"
 
 	"github.com/joho/godotenv"
-	"github.com/spf13/cobra"
 	"github.com/root/sona-ai/pkg/config"
 	"github.com/root/sona-ai/pkg/interactive"
 	"github.com/root/sona-ai/pkg/transcriber"
+	"github.com/spf13/cobra"
 )
 
 func main() {
@@ -20,9 +20,11 @@ func main() {
 
 	var rootCmd = &cobra.Command{
 		Use:   "sona",
-		Short: "Convert audio files and YouTube videos to text using AssemblyAI",
-		Long: `A CLI tool that converts audio files and YouTube videos to text transcripts using AssemblyAI.
-		
+		Short: "audio transcription tool",
+		Long: `sona - audio transcription tool
+
+A CLI tool that converts audio files and YouTube videos to text transcripts using AssemblyAI.
+
 Features:
 - Transcribe local audio files
 - Download and transcribe YouTube videos

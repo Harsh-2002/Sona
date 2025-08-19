@@ -6,10 +6,10 @@ import (
 	"os"
 	"strings"
 
-	"github.com/spf13/cobra"
 	"github.com/root/sona-ai/pkg/config"
 	"github.com/root/sona-ai/pkg/transcriber"
 	"github.com/root/sona-ai/pkg/youtube"
+	"github.com/spf13/cobra"
 )
 
 // InteractiveCmd represents the interactive command
@@ -23,8 +23,9 @@ var InteractiveCmd = &cobra.Command{
 }
 
 func runInteractiveMode() {
-	fmt.Println("Welcome to Sona")
-	fmt.Println("-------------")
+	fmt.Println("--------------------------------")
+	fmt.Println("❇️  Sona is your go-to tool for turning audio files or YouTube videos into text—fast, easy, and accurate.")
+	fmt.Println("--------------------------------")
 
 	// Check if API key is set
 	apiKey := checkAndSetAPIKey()
@@ -51,7 +52,7 @@ func runInteractiveMode() {
 		fmt.Println("Operation canceled")
 		return
 	}
-	
+
 	// Save settings for next time
 	config.SaveLastSession(sourceType, speechModel, outputPath)
 
@@ -80,26 +81,26 @@ func runInteractiveMode() {
 // checkAndSetAPIKey checks if API key is set and prompts user to set it if not
 func checkAndSetAPIKey() string {
 	apiKey := ""
-	
+
 	// Try to get existing API key
 	apiKey = config.GetAPIKeyNoExit()
-	
+
 	// If no API key, prompt user to enter one
 	if apiKey == "" {
 		fmt.Println("\nNo AssemblyAI API key found. You need an API key to use this tool.")
 		fmt.Println("You can get one for free at https://www.assemblyai.com/")
-		
+
 		for {
 			fmt.Print("\nPlease enter your AssemblyAI API key: ")
 			scanner := bufio.NewScanner(os.Stdin)
 			scanner.Scan()
 			apiKey = strings.TrimSpace(scanner.Text())
-			
+
 			if apiKey == "" {
 				fmt.Println("API key cannot be empty. Please try again.")
 				continue
 			}
-			
+
 			// Save the API key
 			fmt.Print("Do you want to save this API key for future use? (y/n): ")
 			scanner.Scan()
@@ -107,11 +108,11 @@ func checkAndSetAPIKey() string {
 				config.SaveAPIKey(apiKey)
 				fmt.Println("API key saved successfully")
 			}
-			
+
 			break
 		}
 	}
-	
+
 	return apiKey
 }
 
@@ -120,7 +121,7 @@ func promptSourceType(lastSourceType string) string {
 	fmt.Println("\nWhat type of source would you like to transcribe?")
 	fmt.Println("1. YouTube video")
 	fmt.Println("2. Local audio file")
-	
+
 	// Show last used option if available
 	defaultOption := ""
 	if lastSourceType == "youtube" {
@@ -130,23 +131,23 @@ func promptSourceType(lastSourceType string) string {
 		defaultOption = "2"
 		fmt.Println("Last used: Local audio file")
 	}
-	
+
 	for {
 		if defaultOption != "" {
 			fmt.Printf("\nEnter your choice (1 or 2, press Enter for last used [%s]): ", defaultOption)
 		} else {
 			fmt.Print("\nEnter your choice (1 or 2): ")
 		}
-		
+
 		scanner := bufio.NewScanner(os.Stdin)
 		scanner.Scan()
 		choice := strings.TrimSpace(scanner.Text())
-		
+
 		// Use default if empty
 		if choice == "" && defaultOption != "" {
 			choice = defaultOption
 		}
-		
+
 		if choice == "1" {
 			return "youtube"
 		} else if choice == "2" {
@@ -165,18 +166,18 @@ func promptSource(sourceType string) string {
 	} else {
 		prompt = "Enter path to audio file: "
 	}
-	
+
 	for {
 		fmt.Print("\n" + prompt)
 		scanner := bufio.NewScanner(os.Stdin)
 		scanner.Scan()
 		source := strings.TrimSpace(scanner.Text())
-		
+
 		if source == "" {
 			fmt.Println("Source cannot be empty. Please try again.")
 			continue
 		}
-		
+
 		// Validate source
 		if sourceType == "youtube" && !youtube.IsYouTubeURL(source) {
 			fmt.Println("Invalid YouTube URL. Please enter a valid URL.")
@@ -187,7 +188,7 @@ func promptSource(sourceType string) string {
 				continue
 			}
 		}
-		
+
 		return source
 	}
 }
@@ -195,22 +196,22 @@ func promptSource(sourceType string) string {
 // promptOutputPath asks user for output path (optional)
 func promptOutputPath(lastOutputPath string) string {
 	prompt := "\nEnter output path (leave blank for default)"
-	
+
 	// Show last used path if available
 	if lastOutputPath != "" {
 		prompt += fmt.Sprintf(" or press Enter for last used [%s]", lastOutputPath)
 	}
-	
+
 	fmt.Print(prompt + ": ")
 	scanner := bufio.NewScanner(os.Stdin)
 	scanner.Scan()
 	path := strings.TrimSpace(scanner.Text())
-	
+
 	// Use last path if input is empty and last path exists
 	if path == "" && lastOutputPath != "" {
 		return lastOutputPath
 	}
-	
+
 	return path
 }
 
@@ -220,11 +221,11 @@ func promptSpeechModel(lastModel string) string {
 	fmt.Println("1. slam-1 (best accuracy)")
 	fmt.Println("2. best (good for most use cases)")
 	fmt.Println("3. nano (fastest, good for real-time)")
-	
+
 	// Determine default choice based on last used model
 	defaultChoice := ""
 	defaultModel := "slam-1"
-	
+
 	switch lastModel {
 	case "slam-1":
 		defaultChoice = "1"
@@ -236,7 +237,7 @@ func promptSpeechModel(lastModel string) string {
 		defaultChoice = "3"
 		defaultModel = "nano"
 	}
-	
+
 	// Show last used model if available
 	if defaultChoice != "" {
 		fmt.Printf("Last used: %s\n", lastModel)
@@ -244,11 +245,11 @@ func promptSpeechModel(lastModel string) string {
 	} else {
 		fmt.Print("\nEnter your choice (1-3, or leave blank for default): ")
 	}
-	
+
 	scanner := bufio.NewScanner(os.Stdin)
 	scanner.Scan()
 	choice := strings.TrimSpace(scanner.Text())
-	
+
 	// Use default if empty
 	if choice == "" {
 		if defaultChoice != "" {
@@ -256,7 +257,7 @@ func promptSpeechModel(lastModel string) string {
 		}
 		return "slam-1"
 	}
-	
+
 	switch choice {
 	case "1":
 		return "slam-1"
@@ -275,15 +276,15 @@ func confirmSettings(sourceType, source, outputPath, speechModel string) bool {
 	fmt.Println("\nSummary of settings:")
 	fmt.Printf("Source type: %s\n", sourceType)
 	fmt.Printf("Source: %s\n", source)
-	
+
 	if outputPath != "" {
 		fmt.Printf("Output path: %s\n", outputPath)
 	} else {
 		fmt.Println("Output path: [default]")
 	}
-	
+
 	fmt.Printf("Speech model: %s\n", speechModel)
-	
+
 	fmt.Print("\nProceed with these settings? (y/n): ")
 	scanner := bufio.NewScanner(os.Stdin)
 	scanner.Scan()

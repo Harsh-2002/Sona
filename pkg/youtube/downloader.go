@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -43,7 +44,7 @@ func DownloadAudio(url string, outputDir string) (string, error) {
 		duration = "Unknown"
 	} else {
 		fmt.Printf("Video: %s\n", title)
-		fmt.Printf("Duration: %s\n", duration)
+		fmt.Printf("Duration: %s\n", formatDuration(duration))
 	}
 
 	// Create context with timeout
@@ -88,6 +89,27 @@ func DownloadAudio(url string, outputDir string) (string, error) {
 	fmt.Printf("Audio download completed successfully (%.2f MB)\n", float64(fileInfo.Size())/1024/1024)
 
 	return outputFile, nil
+}
+
+// formatDuration converts duration string to human-readable format
+// Examples: "1342" -> "22m 22s", "90" -> "1m 30s", "45" -> "45s"
+func formatDuration(duration string) string {
+	// Try to parse as integer seconds
+	if seconds, err := strconv.Atoi(duration); err == nil {
+		minutes := seconds / 60
+		remainingSeconds := seconds % 60
+		
+		if minutes > 0 {
+			if remainingSeconds > 0 {
+				return fmt.Sprintf("%dm %ds", minutes, remainingSeconds)
+			}
+			return fmt.Sprintf("%dm", minutes)
+		}
+		return fmt.Sprintf("%ds", remainingSeconds)
+	}
+	
+	// If parsing fails, return as-is (might already be formatted)
+	return duration
 }
 
 // findBinary finds a binary in PATH or user's bin directory
