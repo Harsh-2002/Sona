@@ -128,11 +128,13 @@ download_binary() {
     local real_user=""
     if [ -n "$SUDO_USER" ]; then
         real_user="$SUDO_USER"
-    elif [ -n "$USER" ]; then
+    elif [ -n "$USER" ] && [ "$USER" != "root" ]; then
         real_user="$USER"
     else
         real_user=$(logname 2>/dev/null || echo "")
     fi
+    
+
     
     if [ -n "$real_user" ] && [ "$real_user" != "root" ]; then
         print_status "$BLUE" "🔧 Installing dependencies for user: $real_user"
@@ -288,6 +290,7 @@ NOTES:
     - Supports AMD64 and ARM64 architectures
     - Downloads latest version from MinIO S3 bucket
     - Dependencies (yt-dlp, FFmpeg) are automatically installed after binary installation
+    - Automatically verifies dependency availability after installation
     - Some Linux distributions may require xz-utils for FFmpeg extraction
 
 For more information, visit: https://github.com/Harsh-2002/Sona
