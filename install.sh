@@ -137,7 +137,7 @@ download_binary() {
     if [ -n "$real_user" ] && [ "$real_user" != "root" ]; then
         print_status "$BLUE" "🔧 Installing dependencies for user: $real_user"
         if sudo -u "$real_user" "$INSTALL_DIR/$BINARY_NAME" install >/dev/null 2>&1; then
-            print_status "$GREEN" "✅ Dependencies installed successfully for $real_user!"
+            print_status "$GREEN" "✅ Dependencies installation completed for $real_user!"
         else
             print_status "$YELLOW" "⚠️  Dependencies installation failed or incomplete"
             print_status "$YELLOW" "💡 You can manually run 'sona install' to install dependencies"
@@ -147,6 +147,49 @@ download_binary() {
         print_status "$YELLOW" "💡 This usually happens when running as root directly"
         print_status "$YELLOW" "💡 Please run 'sona install' manually after installation"
         print_status "$YELLOW" "💡 Or run the installer as: sudo -u $USER ./install.sh"
+    fi
+    
+    # Verify dependencies are actually available
+    print_status "$BLUE" "🔍 Verifying dependencies availability..."
+    
+    # Check yt-dlp
+    local ytdlp_found=false
+    if command -v yt-dlp >/dev/null 2>&1; then
+        ytdlp_found=true
+    elif [ -n "$real_user" ] && [ "$real_user" != "root" ]; then
+        # Check user's bin directory
+        if [ -f "/home/$real_user/bin/yt-dlp" ]; then
+            ytdlp_found=true
+        fi
+    fi
+    
+    # Check ffmpeg
+    local ffmpeg_found=false
+    if command -v ffmpeg >/dev/null 2>&1; then
+        ffmpeg_found=true
+    elif [ -n "$real_user" ] && [ "$real_user" != "root" ]; then
+        # Check user's bin directory
+        if [ -f "/home/$real_user/bin/ffmpeg" ]; then
+            ffmpeg_found=true
+        fi
+    fi
+    
+    # Report dependency status
+    if [ "$ytdlp_found" = true ] && [ "$ffmpeg_found" = true ]; then
+        print_status "$GREEN" "✅ Both dependencies (yt-dlp and FFmpeg) are available!"
+    else
+        print_status "$YELLOW" "⚠️  Some dependencies may not be available:"
+        if [ "$ytdlp_found" = false ]; then
+            print_status "$YELLOW" "   ❌ yt-dlp not found"
+        else
+            print_status "$GREEN" "   ✅ yt-dlp available"
+        fi
+        if [ "$ffmpeg_found" = false ]; then
+            print_status "$YELLOW" "   ❌ FFmpeg not found"
+        else
+            print_status "$GREEN" "   ✅ FFmpeg available"
+        fi
+        print_status "$YELLOW" "💡 Run 'sona install' manually to install missing dependencies"
     fi
 }
 
@@ -180,9 +223,9 @@ install_sona() {
     download_binary "$binary_name"
     print_status "$GREEN" "🎉 Installation completed!"
     print_status "$GREEN" "✅ Sona is now available system-wide as '$BINARY_NAME'"
-    print_status "$GREEN" "✅ Dependencies (yt-dlp, FFmpeg) are ready to use"
     print_status "$BLUE" "📋 Test it with: $BINARY_NAME --help"
     print_status "$BLUE" "📋 Check status with: $BINARY_NAME status"
+    print_status "$BLUE" "📋 Verify dependencies with: $BINARY_NAME install"
 }
 
 # Function to uninstall sona

@@ -185,10 +185,10 @@ func convertAudioToMP3(inputPath string, outputDir string) (string, error) {
 	// Check if ffmpeg is installed
 	ffmpegPath, err := FindBinary("ffmpeg")
 	if err != nil {
-			// FFmpeg not found
-	fmt.Println("❌ FFmpeg not found")
-	fmt.Println("💡 Run 'sona install' to install dependencies")
-	return "", fmt.Errorf("FFmpeg is required for audio conversion. Run 'sona install' to install dependencies")
+		// FFmpeg not found
+		fmt.Println("❌ FFmpeg not found")
+		fmt.Println("💡 Run 'sona install' to install dependencies")
+		return "", fmt.Errorf("FFmpeg is required for audio conversion. Run 'sona install' to install dependencies")
 	}
 
 	// Create output path
