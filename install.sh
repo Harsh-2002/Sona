@@ -161,6 +161,11 @@ download_binary() {
         if [ -f "/home/$real_user/bin/yt-dlp" ]; then
             ytdlp_found=true
         fi
+    elif [ "$real_user" = "root" ] || [ -z "$real_user" ]; then
+        # Check root's bin directory
+        if [ -f "/root/bin/yt-dlp" ]; then
+            ytdlp_found=true
+        fi
     fi
     
     # Check ffmpeg
@@ -170,6 +175,11 @@ download_binary() {
     elif [ -n "$real_user" ] && [ "$real_user" != "root" ]; then
         # Check user's bin directory
         if [ -f "/home/$real_user/bin/ffmpeg" ]; then
+            ffmpeg_found=true
+        fi
+    elif [ "$real_user" = "root" ] || [ -z "$real_user" ]; then
+        # Check root's bin directory
+        if [ -f "/root/bin/ffmpeg" ]; then
             ffmpeg_found=true
         fi
     fi
