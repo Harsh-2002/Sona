@@ -34,6 +34,50 @@ Features:
 	},
 }
 
+var installCmd = &cobra.Command{
+	Use:   "install",
+	Short: "Install dependencies for the current platform",
+	Long:  "Install yt-dlp and FFmpeg dependencies for the current platform. This command will download and install the appropriate binaries for your operating system.",
+	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Println("Sona Dependency Installation")
+		fmt.Println("============================")
+
+		// Install yt-dlp
+		fmt.Println("\n1. YouTube Download (yt-dlp):")
+		fmt.Println("   Installing...")
+		if err := youtube.InstallYtDlp(); err != nil {
+			fmt.Printf("   Failed: %v\n", err)
+			fmt.Println("   💡 Check logs at:", logger.GetLogPath())
+			os.Exit(1)
+		}
+		fmt.Println("   ✅ Installed successfully")
+
+		// Install FFmpeg
+		fmt.Println("\n2. Audio Processing (FFmpeg):")
+		fmt.Println("   Installing...")
+		if err := transcriber.InstallFFmpeg(); err != nil {
+			fmt.Printf("   Failed: %v\n", err)
+			fmt.Println("   💡 Check logs at:", logger.GetLogPath())
+			os.Exit(1)
+		}
+		fmt.Println("   ✅ Installed successfully")
+
+		// On macOS, also check for ffprobe
+		if runtime.GOOS == "darwin" {
+			fmt.Println("\n3. macOS Audio Tools (ffprobe):")
+			if _, err := transcriber.FindBinary("ffprobe"); err != nil {
+				fmt.Println("   ⚠️  ffprobe not found after FFmpeg installation")
+				fmt.Println("   💡 This might cause issues with YouTube downloads")
+			} else {
+				fmt.Println("   ✅ Available")
+			}
+		}
+
+		fmt.Println("\nInstallation completed!")
+		fmt.Println("💡 Run 'sona status' to verify the installation")
+	},
+}
+
 func init() {
 	// Initialize configuration
 	config.InitConfig()
@@ -43,6 +87,7 @@ func init() {
 	rootCmd.AddCommand(config.ConfigCmd)
 	rootCmd.AddCommand(interactive.InteractiveCmd)
 	rootCmd.AddCommand(statusCmd)
+	rootCmd.AddCommand(installCmd)
 }
 
 var statusCmd = &cobra.Command{
@@ -58,7 +103,7 @@ var statusCmd = &cobra.Command{
 		if ytdlpPath, err := youtube.FindBinary("yt-dlp"); err == nil {
 			fmt.Printf("   Available at: %s\n", ytdlpPath)
 		} else {
-			fmt.Println("   Not found (will auto-install when needed)")
+			fmt.Println("   Not found (run 'sona install' to install)")
 		}
 
 		// Check FFmpeg
@@ -71,11 +116,11 @@ var statusCmd = &cobra.Command{
 				if ffprobePath, err := transcriber.FindBinary("ffprobe"); err == nil {
 					fmt.Printf("   ffprobe available at: %s\n", ffprobePath)
 				} else {
-					fmt.Println("   ffprobe not found (will auto-install when needed)")
+					fmt.Println("   ffprobe not found (run 'sona install' to install)")
 				}
 			}
 		} else {
-			fmt.Println("   Not found (will auto-install when needed)")
+			fmt.Println("   Not found (run 'sona install' to install)")
 		}
 
 		// Check API key

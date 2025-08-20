@@ -19,19 +19,8 @@ func DownloadAudio(url string, outputDir string) (string, error) {
 	// Check if yt-dlp is installed
 	ytdlpPath, err := FindBinary("yt-dlp")
 	if err != nil {
-		// Try to install yt-dlp
-		logger.LogInfo("yt-dlp not found, attempting to install")
-		if err := InstallYtDlp(); err != nil {
-			logger.LogError("Failed to install yt-dlp: %v", err)
-			return "", fmt.Errorf("failed to install yt-dlp: %v", err)
-		}
-
-		// Check again
-		ytdlpPath, err = FindBinary("yt-dlp")
-		if err != nil {
-			logger.LogError("yt-dlp not found after installation attempt: %v", err)
-			return "", fmt.Errorf("yt-dlp not found after installation attempt: %v", err)
-		}
+		logger.LogError("yt-dlp not found: %v", err)
+		return "", fmt.Errorf("yt-dlp not found. Run 'sona install' to install dependencies")
 	}
 
 	logger.LogInfo("Using yt-dlp: %s", ytdlpPath)

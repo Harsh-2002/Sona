@@ -923,6 +923,14 @@
                 <button class="copy-button" onclick="copyCode(this)">Copy</button>
             </div>
             
+            <p>Install dependencies:</p>
+            <div class="code-container">
+                <div class="code">
+                    <code>sona install</code>
+                </div>
+                <button class="copy-button" onclick="copyCode(this)">Copy</button>
+            </div>
+            
             <h3 style="margin: 2rem 0 1rem 0; color: #222; text-align: center;">Transcription Commands</h3>
             
             <p>Transcribe local audio file:</p>
@@ -1022,14 +1030,14 @@
                     <div class="card-content">
                         <h3>YouTube Download Failures</h3>
                         <p><strong>Problem:</strong> "yt-dlp not found" or download errors</p>
-                        <p><strong>Solution:</strong> The app will auto-install yt-dlp. If it fails, run <code>sona status</code> to check system status and ensure you have curl/wget available.</p>
+                        <p><strong>Solution:</strong> Run <code>sona install</code> to install dependencies. If it fails, run <code>sona status</code> to check system status and ensure you have curl/wget available.</p>
                     </div>
                 </div>
                 <div class="card">
                     <div class="card-content">
                         <h3>Audio Conversion Errors</h3>
                         <p><strong>Problem:</strong> "FFmpeg not found" or "transcoding failed"</p>
-                        <p><strong>Solution:</strong> The app will auto-install FFmpeg. Check <code>sona status</code> to verify FFmpeg availability. Ensure audio files are valid and not corrupted.</p>
+                        <p><strong>Solution:</strong> Run <code>sona install</code> to install dependencies. Check <code>sona status</code> to verify FFmpeg availability. Ensure audio files are valid and not corrupted.</p>
                     </div>
                 </div>
                 <div class="card">
@@ -1071,10 +1079,16 @@
             
             <div style="margin-top: 3rem; text-align: center;">
                 <h3 style="color: #222; margin-bottom: 1rem;">Still Having Issues?</h3>
-                <p style="color: #666; margin-bottom: 1.5rem;">Run <code>sona status</code> to check your system configuration and dependency status.</p>
+                <p style="color: #666; margin-bottom: 1.5rem;">Run <code>sona status</code> to check your system configuration and dependency status. If dependencies are missing, run <code>sona install</code> to install them.</p>
                 <div class="code-container" style="max-width: 400px; margin: 0 auto;">
                     <div class="code">
                         <code>sona status</code>
+                    </div>
+                    <button class="copy-button" onclick="copyCode(this)">Copy</button>
+                </div>
+                <div class="code-container" style="max-width: 400px; margin: 1rem auto 0 auto;">
+                    <div class="code">
+                        <code>sona install</code>
                     </div>
                     <button class="copy-button" onclick="copyCode(this)">Copy</button>
                 </div>

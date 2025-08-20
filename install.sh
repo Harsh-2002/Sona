@@ -120,6 +120,34 @@ download_binary() {
     chmod +x "$INSTALL_DIR/$BINARY_NAME"
     echo "latest" > "$VERSION_FILE"
     print_status "$GREEN" "✅ Downloaded and installed sona to $INSTALL_DIR/"
+    
+    # Auto-install dependencies after binary installation
+    print_status "$BLUE" "🔧 Installing dependencies automatically..."
+    
+    # Get the real user (not root) for dependency installation
+    local real_user=""
+    if [ -n "$SUDO_USER" ]; then
+        real_user="$SUDO_USER"
+    elif [ -n "$USER" ]; then
+        real_user="$USER"
+    else
+        real_user=$(logname 2>/dev/null || echo "")
+    fi
+    
+    if [ -n "$real_user" ] && [ "$real_user" != "root" ]; then
+        print_status "$BLUE" "🔧 Installing dependencies for user: $real_user"
+        if sudo -u "$real_user" "$INSTALL_DIR/$BINARY_NAME" install >/dev/null 2>&1; then
+            print_status "$GREEN" "✅ Dependencies installed successfully for $real_user!"
+        else
+            print_status "$YELLOW" "⚠️  Dependencies installation failed or incomplete"
+            print_status "$YELLOW" "💡 You can manually run 'sona install' to install dependencies"
+        fi
+    else
+        print_status "$YELLOW" "⚠️  Could not determine real user for dependency installation"
+        print_status "$YELLOW" "💡 This usually happens when running as root directly"
+        print_status "$YELLOW" "💡 Please run 'sona install' manually after installation"
+        print_status "$YELLOW" "💡 Or run the installer as: sudo -u $USER ./install.sh"
+    fi
 }
 
 # Function to install sona
@@ -152,7 +180,9 @@ install_sona() {
     download_binary "$binary_name"
     print_status "$GREEN" "🎉 Installation completed!"
     print_status "$GREEN" "✅ Sona is now available system-wide as '$BINARY_NAME'"
+    print_status "$GREEN" "✅ Dependencies (yt-dlp, FFmpeg) are ready to use"
     print_status "$BLUE" "📋 Test it with: $BINARY_NAME --help"
+    print_status "$BLUE" "📋 Check status with: $BINARY_NAME status"
 }
 
 # Function to uninstall sona
@@ -195,7 +225,7 @@ DEFAULT ACTION:
     If no option is specified, Sona will be installed (or updated if already installed)
 
 EXAMPLES:
-    $0                    # Install/Update Sona (always latest version)
+    $0                   # Install/Update Sona (always latest version)
     $0 --uninstall       # Uninstall Sona
     $0 --help            # Show this help message
 
@@ -204,7 +234,7 @@ NOTES:
     - Automatically detects your platform (Linux, macOS, Windows)
     - Supports AMD64 and ARM64 architectures
     - Downloads latest version from MinIO S3 bucket
-    - Dependencies (yt-dlp, FFmpeg) are auto-installed when needed
+    - Dependencies (yt-dlp, FFmpeg) are automatically installed after binary installation
 
 For more information, visit: https://github.com/Harsh-2002/Sona
 EOF

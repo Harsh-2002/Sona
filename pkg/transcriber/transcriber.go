@@ -75,48 +75,34 @@ func init() {
 // checkAndInstallDependencies ensures both yt-dlp and ffmpeg are available
 func checkAndInstallDependencies() error {
 	fmt.Println("🔍 Checking dependencies...")
-	logger.LogInfo("Checking and installing dependencies")
+	logger.LogInfo("Checking dependencies")
 
 	// Check yt-dlp
 	ytdlpPath, err := youtube.FindBinary("yt-dlp")
 	if err != nil {
-		fmt.Println("📥 Installing yt-dlp...")
-		logger.LogInfo("yt-dlp not found, installing")
-		if err := youtube.InstallYtDlp(); err != nil {
-			logger.LogError("Failed to install yt-dlp: %v", err)
-			return fmt.Errorf("failed to install yt-dlp: %v", err)
-		}
-		fmt.Println("✅ yt-dlp installed successfully")
-	} else {
-		logger.LogInfo("yt-dlp found at: %s", ytdlpPath)
+		fmt.Println("❌ yt-dlp not found")
+		fmt.Println("💡 Run 'sona install' to install dependencies")
+		return fmt.Errorf("yt-dlp not found. Run 'sona install' to install dependencies")
 	}
+	logger.LogInfo("yt-dlp found at: %s", ytdlpPath)
 
 	// Check ffmpeg
 	ffmpegPath, err := FindBinary("ffmpeg")
 	if err != nil {
-		fmt.Println("📥 Installing FFmpeg...")
-		logger.LogInfo("FFmpeg not found, installing")
-		if err := installFFmpeg(); err != nil {
-			logger.LogError("Failed to install FFmpeg: %v", err)
-			return fmt.Errorf("failed to install FFmpeg: %v", err)
-		}
-		fmt.Println("✅ FFmpeg installed successfully")
-	} else {
-		logger.LogInfo("FFmpeg found at: %s", ffmpegPath)
+		fmt.Println("❌ FFmpeg not found")
+		fmt.Println("💡 Run 'sona install' to install dependencies")
+		return fmt.Errorf("FFmpeg not found. Run 'sona install' to install dependencies")
+	}
+	logger.LogInfo("FFmpeg found at: %s", ffmpegPath)
 
-		// On macOS, also check for ffprobe
-		if runtime.GOOS == "darwin" {
-			if _, err := FindBinary("ffprobe"); err != nil {
-				fmt.Println("📥 Installing ffprobe for macOS...")
-				logger.LogInfo("ffprobe not found on macOS, installing")
-				if err := installFFmpeg(); err != nil {
-					logger.LogError("Failed to install ffprobe: %v", err)
-					return fmt.Errorf("failed to install ffprobe: %v", err)
-				}
-				fmt.Println("✅ ffprobe installed successfully")
-			} else {
-				logger.LogInfo("ffprobe found")
-			}
+	// On macOS, also check for ffprobe
+	if runtime.GOOS == "darwin" {
+		if _, err := FindBinary("ffprobe"); err != nil {
+			fmt.Println("❌ ffprobe not found on macOS")
+			fmt.Println("💡 Run 'sona install' to install dependencies")
+			return fmt.Errorf("ffprobe not found on macOS. Run 'sona install' to install dependencies")
+		} else {
+			logger.LogInfo("ffprobe found")
 		}
 	}
 
@@ -199,17 +185,10 @@ func convertAudioToMP3(inputPath string, outputDir string) (string, error) {
 	// Check if ffmpeg is installed
 	ffmpegPath, err := FindBinary("ffmpeg")
 	if err != nil {
-		// Try to install ffmpeg
-		fmt.Println("FFmpeg not found, attempting to install...")
-		if err := installFFmpeg(); err != nil {
-			return "", fmt.Errorf("FFmpeg is required for audio conversion. Please install it manually: %v", err)
-		}
-
-		// Check again
-		ffmpegPath, err = FindBinary("ffmpeg")
-		if err != nil {
-			return "", fmt.Errorf("FFmpeg not found after installation attempt: %v", err)
-		}
+			// FFmpeg not found
+	fmt.Println("❌ FFmpeg not found")
+	fmt.Println("💡 Run 'sona install' to install dependencies")
+	return "", fmt.Errorf("FFmpeg is required for audio conversion. Run 'sona install' to install dependencies")
 	}
 
 	// Create output path
@@ -267,8 +246,8 @@ func FindBinary(binaryName string) (string, error) {
 	return "", fmt.Errorf("%s not found", binaryName)
 }
 
-// installFFmpeg attempts to install FFmpeg
-func installFFmpeg() error {
+// InstallFFmpeg attempts to install FFmpeg
+func InstallFFmpeg() error {
 	// Direct binary download is more reliable across platforms
 	fmt.Println("Downloading FFmpeg binary directly...")
 	return downloadFFmpegBinary()

@@ -75,7 +75,7 @@ If you prefer to download manually, here are the direct links for each platform:
 - **Internet Connection** - For API calls and YouTube downloads
 - **Storage Space** - For temporary audio files and transcripts
 
-The installer automatically handles dependencies like `yt-dlp` and `FFmpeg` for you.
+The installer automatically handles dependencies like `yt-dlp` and `FFmpeg` for you. After installation, run `sona install` to set up the required dependencies for your platform.
 
 ## 🏗️ How Sona Works
 
@@ -121,6 +121,11 @@ sona transcribe https://youtube.com/watch?v=VIDEO_ID
 **Start interactive mode:**
 ```bash
 sona interactive
+```
+
+**Install dependencies:**
+```bash
+sona install
 ```
 
 **Manage your settings:**
@@ -174,12 +179,12 @@ Sona stores your settings in `~/.sona/config.toml`:
 - Check environment variable `ASSEMBLYAI_API_KEY`
 
 **"yt-dlp not found"**
-- Sona will try to install it automatically
-- Manual install: Dependencies are automatically installed when needed
+- Run `sona install` to install dependencies
+- Manual install: Dependencies must be installed using `sona install`
 
 **"FFmpeg not found"**
-- Sona will try to install it automatically
-- Manual install: Dependencies are automatically installed when needed
+- Run `sona install` to install dependencies
+- Manual install: Dependencies must be installed using `sona install`
 
 **"Permission denied"**
 - Run installer with `sudo ./install.sh`
