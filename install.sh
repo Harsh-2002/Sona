@@ -235,6 +235,7 @@ NOTES:
     - Supports AMD64 and ARM64 architectures
     - Downloads latest version from MinIO S3 bucket
     - Dependencies (yt-dlp, FFmpeg) are automatically installed after binary installation
+    - Some Linux distributions may require xz-utils for FFmpeg extraction
 
 For more information, visit: https://github.com/Harsh-2002/Sona
 EOF

@@ -433,7 +433,7 @@ func getFFmpegDownloadURL(platform, arch string) (string, string) {
 			// Use static builds from BtbN's repository for Windows
 			return "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip", "ffmpeg-win64.zip"
 		} else if arch == "aarch64" {
-			return "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-winarm64-gpl.zip", "ffmpeg-winarm64.zip"
+			return "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-winarm64-gpl.zip", "ffmpeg-winarm64-gpl.zip"
 		}
 	}
 
@@ -449,6 +449,10 @@ func extractFFmpegArchive(filename string) error {
 	if strings.HasSuffix(filename, ".tar.gz") {
 		cmd = exec.Command("tar", "-xzf", filename)
 	} else if strings.HasSuffix(filename, ".tar.xz") {
+		// Check if xz is available
+		if _, err := exec.LookPath("xz"); err != nil {
+			return fmt.Errorf("xz utility not found. Please install xz-utils:\n  Ubuntu/Debian: sudo apt-get install xz-utils\n  CentOS/RHEL: sudo yum install xz\n  Alpine: apk add xz\n  Or run: sona install --help for alternative solutions")
+		}
 		cmd = exec.Command("tar", "-xf", filename)
 	} else if strings.HasSuffix(filename, ".zip") {
 		cmd = exec.Command("unzip", "-q", filename)

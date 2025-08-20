@@ -1042,6 +1042,13 @@
                 </div>
                 <div class="card">
                     <div class="card-content">
+                        <h3>FFmpeg Extraction Errors</h3>
+                        <p><strong>Problem:</strong> "xz utility not found" or "failed to extract FFmpeg archive"</p>
+                        <p><strong>Solution:</strong> Install xz-utils: <code>sudo apt-get install xz-utils</code> (Ubuntu/Debian) or <code>sudo yum install xz</code> (CentOS/RHEL). This is required for extracting FFmpeg archives on some Linux distributions.</p>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-content">
                         <h3>File Permission Issues</h3>
                         <p><strong>Problem:</strong> "Permission denied" or "cannot create file"</p>
                         <p><strong>Solution:</strong> Ensure output directory is writable. Run <code>chmod 755 /path/to/output</code> or use <code>sudo</code> if installing system-wide.</p>

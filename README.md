@@ -186,6 +186,10 @@ Sona stores your settings in `~/.sona/config.toml`:
 - Run `sona install` to install dependencies
 - Manual install: Dependencies must be installed using `sona install`
 
+**"xz utility not found" or "failed to extract FFmpeg archive"**
+- Install xz-utils: `sudo apt-get install xz-utils` (Ubuntu/Debian) or `sudo yum install xz` (CentOS/RHEL)
+- This is required for extracting FFmpeg archives on some Linux distributions
+
 **"Permission denied"**
 - Run installer with `sudo ./install.sh`
 - For uninstall: `sudo ./install.sh --uninstall`
@@ -210,6 +214,11 @@ The log file contains detailed information about:
 **macOS Note:** On macOS, Sona automatically installs both `ffmpeg` and `ffprobe` from evermeet.cx, which are required for YouTube audio extraction.
 
 **Path Consistency:** On all Unix-like systems (Linux, macOS, BSD), dependencies are installed to `~/bin/` for consistent behavior across platforms.
+
+**System Requirements:** Some Linux distributions may require the `xz-utils` package for FFmpeg installation. If you encounter extraction errors, install it with:
+- **Ubuntu/Debian**: `sudo apt-get install xz-utils`
+- **CentOS/RHEL**: `sudo yum install xz`
+- **Alpine**: `apk add xz`
 
 ### Updating Sona
 
