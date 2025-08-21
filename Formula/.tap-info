@@ -1,0 +1,8 @@
+# Homebrew Tap Information for Sona
+# This file provides metadata about the Sona tap
+
+tap_name: "harsh-2002/sona"
+description: "Audio transcription tool using AssemblyAI"
+homepage: "https://github.com/Harsh-2002/Sona"
+maintainer: "Harsh-2002"
+license: "MIT"
