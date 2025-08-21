@@ -8,7 +8,7 @@ Users can install Sona using this formula by running:
 
 ```bash
 # Add this tap to Homebrew
-brew tap harsh-2002/sona
+brew tap harsh-2002/homebrew-sona
 
 # Install Sona
 brew install sona

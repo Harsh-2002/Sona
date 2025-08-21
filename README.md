@@ -9,10 +9,15 @@ Turn audio files and YouTube videos into text with just a few commands. Sona use
 **Install via Homebrew:**
 ```bash
 # Add the Sona tap
-brew tap harsh-2002/sona
+brew tap harsh-2002/homebrew-sona
 
 # Install Sona
 brew install sona
+```
+
+**Update Sona later:**
+```bash
+brew upgrade sona
 ```
 
 

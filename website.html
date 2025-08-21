@@ -861,7 +861,16 @@
                 <h2>Installation</h2>
                 <p>Quick and easy setup to get you started</p>
             </div>
-            <p>Quick setup with one command:</p>
+            
+            <h3 style="margin: 2rem 0 1rem 0; color: #222; text-align: center;">Homebrew Installation (Recommended for macOS/Linux)</h3>
+            <div class="code-container">
+                <div class="code">
+                    <code>brew tap harsh-2002/homebrew-sona && brew install sona</code>
+                </div>
+                <button class="copy-button" onclick="copyCode(this)">Copy</button>
+            </div>
+            
+            <h3 style="margin: 2rem 0 1rem 0; color: #222; text-align: center;">Quick Setup (Alternative)</h3>
             <div class="code-container">
                 <div class="code">
                     <code>curl -fsSL https://raw.githubusercontent.com/Harsh-2002/Sona/main/install.sh | sudo sh</code>
@@ -869,7 +878,7 @@
                 <button class="copy-button" onclick="copyCode(this)">Copy</button>
             </div>
             
-            <p>Or manual installation:</p>
+            <h3 style="margin: 2rem 0 1rem 0; color: #222; text-align: center;">Manual Installation</h3>
             <div class="steps">
                 <div class="step">
                     <h4 data-number="1">Download binary</h4>
@@ -1005,6 +1014,24 @@
             <div class="code-container">
                 <div class="code">
                     <code>sona --help</code>
+                </div>
+                <button class="copy-button" onclick="copyCode(this)">Copy</button>
+            </div>
+            
+            <h3 style="margin: 2rem 0 1rem 0; color: #222; text-align: center;">Updating Sona</h3>
+            
+            <p>If installed via Homebrew:</p>
+            <div class="code-container">
+                <div class="code">
+                    <code>brew upgrade sona</code>
+                </div>
+                <button class="copy-button" onclick="copyCode(this)">Copy</button>
+            </div>
+            
+            <p>If installed via installer script:</p>
+            <div class="code-container">
+                <div class="code">
+                    <code>sudo ./install.sh</code>
                 </div>
                 <button class="copy-button" onclick="copyCode(this)">Copy</button>
             </div>
