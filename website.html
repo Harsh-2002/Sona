@@ -3,11 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Transcribe audio/YouTube videos to text, fast and simple all from your CLI | Sona</title>
-    <meta name="description" content="Sona is a powerful AI-powered audio transcription tool that converts audio files and YouTube videos to text using AssemblyAI. Download for Linux, macOS, and Windows.">
+    <title>Sona - AI-Powered Audio Transcription CLI Tool</title>
+    <meta name="description" content="Sona is a powerful AI-powered audio transcription tool that converts audio files and YouTube videos to text using AssemblyAI. Simple, fast, and secure.">
     <meta name="keywords" content="audio transcription, speech to text, YouTube transcription, AI transcription, AssemblyAI, audio converter, CLI tool">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>❇️</text></svg>">
     <style>
+        :root {
+            --primary: #343a40;
+            --primary-dark: #212529;
+            --gray-50: #ffffff;
+            --gray-100: #e9ecef;
+            --gray-200: #ced4da;
+            --gray-300: #adb5bd;
+            --gray-400: #6c757d;
+            --gray-500: #495057;
+            --gray-600: #343a40;
+            --gray-700: #212529;
+            --gray-800: #000000;
+            --gray-900: #000000;
+            --white: #ffffff;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+            --radius: 0.5rem;
+            --radius-lg: 0.75rem;
+            --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -15,803 +38,775 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
             line-height: 1.6;
-            color: #333;
-            background: #f7f7f7;
+            color: var(--gray-700);
+            background: var(--gray-100);
             font-size: 16px;
+            scroll-behavior: smooth;
         }
 
         .container {
-            max-width: 1140px;
+            max-width: 1200px;
             margin: 0 auto;
-            padding: 0 20px;
+            padding: 0 1.5rem;
         }
 
-        /* Hero */
+
+
+        /* Hero Section */
         .hero {
-            padding: 5rem 0;
+            background: var(--white);
+            padding: 6rem 0;
             text-align: center;
-            background-color: #fff;
-            border-bottom: 1px solid #eaeaea;
-            -webkit-box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            -moz-box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
         }
 
         .hero h1 {
-            font-size: 2.8rem;
-            font-weight: 600;
-            margin-bottom: 1.2rem;
-            color: #222;
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: var(--gray-900);
+            margin-bottom: 1.5rem;
+            line-height: 1.1;
         }
 
-        .hero p {
-            font-size: 1.2rem;
-            color: #666;
-            margin-bottom: 2.5rem;
+        .hero .subtitle {
+            font-size: 1.25rem;
+            color: var(--gray-600);
+            margin-bottom: 3rem;
             max-width: 600px;
             margin-left: auto;
             margin-right: auto;
         }
 
-        .cta-button {
-            display: inline-block;
-            background: #000;
-            color: #fff;
-            padding: 0.9rem 2rem;
-            text-decoration: none;
-            font-weight: 500;
-            border: 1px solid #000;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-            font-size: 1.1rem;
-            -webkit-transition: all 0.3s ease;
-            -moz-transition: all 0.3s ease;
-            -o-transition: all 0.3s ease;
-        }
-
-        .cta-button:hover {
-            background: #fff;
-            color: #000;
-            transform: translateY(-2px);
-            -webkit-transform: translateY(-2px);
-            -moz-transform: translateY(-2px);
-            -ms-transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            -webkit-box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            -moz-box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-
-        /* Sections */
-        .section {
-            padding: 5rem 0;
-            background-color: #fff;
-            margin: 0;
-            border-radius: 0;
-            box-shadow: none;
-        }
-
-        .section:first-of-type {
-            margin-top: 0;
-        }
-
-        .section:not(:first-of-type) {
-            margin-top: 2rem;
-        }
-
-        .section-header {
-            text-align: center;
-            margin-bottom: 3rem;
-        }
-
-        .section h2 {
-            font-size: 2rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
-            color: #222;
-            position: relative;
-            display: inline-block;
-        }
-
-        .section h2:after {
-            content: '';
-            position: absolute;
-            width: 60px;
-            height: 3px;
-            background: #000;
-            bottom: -10px;
-            left: 50%;
-            transform: translateX(-50%);
-        }
-
-        .section p {
-            color: #666;
-            margin-bottom: 1.5rem;
-            max-width: 700px;
-            margin-left: auto;
-            margin-right: auto;
-            text-align: center;
-        }
-
-        /* Card Layouts */
-        .card-grid {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 1.5rem;
-            justify-content: center;
-            margin: 0;
-        }
-
-        .card {
-            background: #fff;
-            border-radius: 12px;
-            overflow: hidden;
-            border: 1px solid #eaeaea;
-            flex: 1 1 300px;
-            max-width: 350px;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-            -webkit-box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-            -moz-box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            -webkit-transition: transform 0.2s ease, box-shadow 0.2s ease;
-            -moz-transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-
-        .card:hover {
-            transform: translateY(-2px);
-            -webkit-transform: translateY(-2px);
-            -moz-transform: translateY(-2px);
-            -ms-transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            -webkit-box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            -moz-box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        .card-content {
-            padding: 1.8rem;
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .card h3 {
-            font-size: 1.3rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
-            color: #222;
-        }
-
-        .card p {
-            color: #666;
-            font-size: 1rem;
-            line-height: 1.6;
-            margin-bottom: 1.5rem;
-            text-align: left;
-            flex-grow: 1;
-        }
-
-        /* Downloads */
-        .download-card {
-            text-align: center;
-            padding: 2rem;
-        }
-
-        .download-card h4 {
-            font-size: 1.2rem;
-            font-weight: 600;
-            margin-bottom: 0.8rem;
-            color: #222;
-        }
-
-        .download-card p {
-            font-size: 0.95rem;
-            color: #666;
-            margin-bottom: 1.5rem;
-            text-align: center;
-        }
-
-        .download-links {
+        .hero-buttons {
             display: flex;
             gap: 1rem;
             justify-content: center;
             flex-wrap: wrap;
         }
 
-        .download-link {
-            display: inline-block;
-            background: #000;
-            color: #fff;
-            padding: 0.6rem 1.2rem;
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.875rem 2rem;
+            border-radius: var(--radius);
+            font-weight: 600;
             text-decoration: none;
-            font-size: 0.95rem;
-            font-weight: 500;
-            border: 1px solid #000;
-            border-radius: 8px;
-            transition: all 0.2s ease;
-            -webkit-transition: all 0.2s ease;
-            -moz-transition: all 0.2s ease;
-            min-width: 120px;
+            transition: var(--transition);
+            border: 2px solid transparent;
+            cursor: pointer;
+            font-size: 1rem;
         }
 
-        .download-link:hover {
-            background: #fff;
-            color: #000;
-            -webkit-transform: translateY(-1px);
-            -moz-transform: translateY(-1px);
-            -ms-transform: translateY(-1px);
+        .btn-primary {
+            background: var(--primary);
+            color: var(--white);
+            box-shadow: var(--shadow);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .btn-secondary {
+            background: var(--white);
+            color: var(--gray-700);
+            border-color: var(--gray-300);
+        }
+
+        .btn-secondary:hover {
+            background: var(--gray-50);
+            border-color: var(--gray-400);
             transform: translateY(-1px);
         }
 
-        /* Code */
-        .code-container {
-            position: relative;
-            margin: 1.5rem auto;
-            max-width: 900px;
-        }
-
-        .usage-section .code-container {
-            max-width: 600px;
-        }
-
-        .code {
-            background: #f5f5f5;
-            padding: 1.2rem;
-            border: 1px solid #e0e0e0;
-            font-family: 'Monaco', 'Menlo', monospace;
-            font-size: 0.95rem;
-            overflow-x: auto;
-            border-radius: 8px;
-            padding-right: 3.5rem;
-        }
-
-        .code code {
-            color: #333;
-        }
-
-        .copy-button {
-            position: absolute;
-            top: 50%;
-            right: 0.8rem;
-            transform: translateY(-50%);
-            -webkit-transform: translateY(-50%);
-            -moz-transform: translateY(-50%);
-            -ms-transform: translateY(-50%);
-            background: #000;
-            color: #fff;
-            border: none;
-            padding: 0.4rem 0.8rem;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.85rem;
-            transition: all 0.2s ease;
-            -webkit-transition: all 0.2s ease;
-            -moz-transition: all 0.2s ease;
-        }
-
-        .copy-button:hover {
-            background: #333;
-            -webkit-transform: translateY(-50%) scale(1.05);
-            -moz-transform: translateY(-50%) scale(1.05);
-            -ms-transform: translateY(-50%) scale(1.05);
-            transform: translateY(-50%) scale(1.05);
-        }
-
-        .copy-button.copied {
-            background: #28a745;
-        }
-
-        /* Steps */
-        .steps {
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-            max-width: 700px;
-            margin: 0 auto;
-        }
-
-        .step {
-            padding: 1.8rem;
-            border: 1px solid #eaeaea;
-            background: #fafafa;
-            border-radius: 12px;
-        }
-
-        .step h4 {
-            font-size: 1.2rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
-            color: #222;
-            display: flex;
-            align-items: center;
-        }
-
-        .step h4:before {
-            content: attr(data-number);
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 28px;
-            height: 28px;
-            background: #000;
-            color: #fff;
-            border-radius: 50%;
-            margin-right: 12px;
-            font-size: 0.9rem;
-        }
-
-        /* Footer */
-        footer {
-            padding: 3rem 0;
-            background: #f2f2f2;
-            text-align: center;
-            color: #666;
-            margin-top: 2rem;
-        }
-
-        .footer-links {
-            margin-bottom: 1.5rem;
-        }
-
-        .footer-links a {
-            color: #444;
-            text-decoration: none;
-            margin: 0 1rem;
-            font-weight: 500;
-            transition: color 0.2s;
-        }
-
-        .footer-links a:hover {
-            color: #000;
-        }
-
-        .footer-love {
-            color: #666;
-            font-size: 0.9rem;
-            margin-top: 1rem;
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .hero h1 {
-                font-size: 2.2rem;
-            }
-            
-            .hero p {
-                font-size: 1.1rem;
-            }
-            
-            .section {
-                padding: 3rem 0;
-            }
-            
-            .section h2 {
-                font-size: 1.8rem;
-            }
-            
-            .card {
-                flex: 0 0 100%;
-                max-width: 100%;
-            }
-            
-            .download-links {
-                flex-direction: column;
-                align-items: center;
-            }
-            
-            .download-link {
-                width: 100%;
-                max-width: 200px;
-            }
-
-            .code-container {
-                max-width: 95%;
-                margin: 1rem auto;
-            }
-
-            .usage-section .code-container {
-                max-width: 95%;
-            }
-
-            .steps {
-                max-width: 95%;
-            }
-
-            .section-header {
-                margin-bottom: 2rem;
-            }
-        }
-
-        @media (min-width: 769px) and (max-width: 1024px) {
-            .card {
-                flex: 0 0 calc(50% - 1rem);
-                max-width: calc(50% - 1rem);
-            }
-
-            .code-container {
-                max-width: 85%;
-            }
-
-            .usage-section .code-container {
-                max-width: 70%;
-            }
-        }
-
-        @media (min-width: 1025px) {
-            .code-container {
-                max-width: 900px;
-            }
-
-            .usage-section .code-container {
-                max-width: 600px;
-            }
-        }
-
-        /* Cross-browser compatibility */
-        .hero {
+        /* Section Styling */
+        .section {
             padding: 5rem 0;
-            text-align: center;
-            background-color: #fff;
-            border-bottom: 1px solid #eaeaea;
-            -webkit-box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            -moz-box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            background: var(--white);
+            margin: 2rem 0;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
         }
 
-        .cta-button {
-            display: inline-block;
-            background: #000;
-            color: #fff;
-            padding: 0.9rem 2rem;
-            text-decoration: none;
-            font-weight: 500;
-            border: 1px solid #000;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-            font-size: 1.1rem;
-            -webkit-transition: all 0.3s ease;
-            -moz-transition: all 0.3s ease;
-            -o-transition: all 0.3s ease;
+        .section:first-of-type {
+            margin-top: 0;
         }
 
-        .cta-button:hover {
-            background: #fff;
-            color: #000;
-            transform: translateY(-2px);
-            -webkit-transform: translateY(-2px);
-            -moz-transform: translateY(-2px);
-            -ms-transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            -webkit-box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            -moz-box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        /* Grid Layouts */
+        .grid {
+            display: grid;
+            gap: 2rem;
         }
 
+        .grid-2 {
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        }
+
+        .grid-3 {
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        }
+
+        /* Card Components */
         .card {
-            background: #fff;
-            border-radius: 12px;
-            overflow: hidden;
-            border: 1px solid #eaeaea;
-            flex: 1 1 300px;
-            max-width: 350px;
+            background: var(--gray-200);
+            border: 1px solid var(--gray-300);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            transition: var(--transition);
+            box-shadow: var(--shadow-sm);
+            height: 100%;
             display: flex;
             flex-direction: column;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-            -webkit-box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-            -moz-box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            -webkit-transition: transform 0.2s ease, box-shadow 0.2s ease;
-            -moz-transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
 
         .card:hover {
-            transform: translateY(-2px);
-            -webkit-transform: translateY(-2px);
-            -moz-transform: translateY(-2px);
-            -ms-transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            -webkit-box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            -moz-box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border-color: var(--gray-600);
         }
 
-        .download-link {
-            display: inline-block;
-            background: #000;
-            color: #fff;
-            padding: 0.6rem 1.2rem;
-            text-decoration: none;
-            font-size: 0.95rem;
-            font-weight: 500;
-            border: 1px solid #000;
-            border-radius: 8px;
-            transition: all 0.2s ease;
-            -webkit-transition: all 0.2s ease;
-            -moz-transition: all 0.2s ease;
-            min-width: 120px;
-        }
-
-        .download-link:hover {
-            background: #fff;
-            color: #000;
-            -webkit-transform: translateY(-1px);
-            -moz-transform: translateY(-1px);
-            -ms-transform: translateY(-1px);
-            transform: translateY(-1px);
-        }
-
-        .copy-button {
-            position: absolute;
-            top: 50%;
-            right: 0.8rem;
-            transform: translateY(-50%);
-            -webkit-transform: translateY(-50%);
-            -moz-transform: translateY(-50%);
-            -ms-transform: translateY(-50%);
-            background: #000;
-            color: #fff;
-            border: none;
-            padding: 0.4rem 0.8rem;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.85rem;
-            transition: all 0.2s ease;
-            -webkit-transition: all 0.2s ease;
-            -moz-transition: all 0.2s ease;
-        }
-
-        .copy-button:hover {
-            background: #333;
-            -webkit-transform: translateY(-50%) scale(1.05);
-            -moz-transform: translateY(-50%) scale(1.05);
-            -ms-transform: translateY(-50%) scale(1.05);
-            transform: translateY(-50%) scale(1.05);
-        }
-
-        .copy-button.copied {
-            background: #28a745;
-        }
-
-        /* Steps */
-        .steps {
+        .card-icon {
+            width: 3rem;
+            height: 3rem;
+            background: var(--primary);
+            border-radius: var(--radius);
             display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-            max-width: 700px;
-            margin: 0 auto;
-        }
-
-        .step {
-            padding: 1.8rem;
-            border: 1px solid #eaeaea;
-            background: #fafafa;
-            border-radius: 12px;
-        }
-
-        .step h4 {
-            font-size: 1.2rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
-            color: #222;
-            display: flex;
-            align-items: center;
-        }
-
-        .step h4:before {
-            content: attr(data-number);
-            display: inline-flex;
             align-items: center;
             justify-content: center;
-            width: 28px;
-            height: 28px;
-            background: #000;
-            color: #fff;
-            border-radius: 50%;
-            margin-right: 12px;
-            font-size: 0.9rem;
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+            color: var(--white);
         }
 
-        /* Footer */
-        footer {
-            padding: 3rem 0;
-            background: #f2f2f2;
-            text-align: center;
-            color: #666;
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: 1rem;
+        }
+
+        .card-content {
+            color: var(--gray-600);
+            flex-grow: 1;
+        }
+
+        /* Code Blocks */
+        .code-block {
+            position: relative;
+            margin: 2rem 0;
+            background: #212529;
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .code-header {
+            background: #343a40;
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #495057;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .code-title {
+            color: var(--gray-300);
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .code-content {
+            padding: 1.5rem;
+            overflow-x: auto;
+        }
+
+        .code-content code {
+            color: #e5e7eb;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+
+        .copy-btn {
+            background: var(--gray-700);
+            color: var(--gray-300);
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius);
+            font-size: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .copy-btn:hover {
+            background: var(--gray-600);
+            color: var(--white);
+        }
+
+        .copy-btn.copied {
+            background: #10b981;
+            color: var(--white);
+        }
+
+        /* Installation Methods */
+        .install-methods {
+            display: grid;
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .install-method {
+            background: var(--white);
+            border: 2px solid var(--gray-200);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            transition: var(--transition);
+        }
+
+        .install-method.recommended {
+            border-color: var(--primary);
+            background: var(--white);
+            position: relative;
+        }
+
+        .install-method.recommended::before {
+            content: 'Recommended';
+            position: absolute;
+            top: -0.5rem;
+            left: 1.5rem;
+            background: var(--primary);
+            color: var(--white);
+            padding: 0.25rem 0.75rem;
+            border-radius: var(--radius);
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .method-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .method-description {
+            color: var(--gray-600);
+            margin-bottom: 1.5rem;
+            font-size: 0.875rem;
+        }
+
+        /* Download Links */
+        .download-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
             margin-top: 2rem;
         }
 
-        .footer-links {
+        .download-card {
+            background: var(--white);
+            border: 2px solid var(--gray-200);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            text-align: center;
+            transition: var(--transition);
+        }
+
+        .download-card:hover {
+            border-color: var(--primary);
+        }
+
+        .download-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .download-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: 0.5rem;
+        }
+
+        .download-subtitle {
+            color: var(--gray-600);
+            font-size: 0.875rem;
             margin-bottom: 1.5rem;
         }
 
-        .footer-links a {
-            color: #444;
+        .download-links {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .download-link {
+            background: var(--gray-100);
+            color: var(--gray-700);
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius);
             text-decoration: none;
-            margin: 0 1rem;
+            font-size: 0.875rem;
             font-weight: 500;
-            transition: color 0.2s;
+            transition: var(--transition);
+            border: 1px solid var(--gray-300);
         }
 
-        .footer-links a:hover {
-            color: #000;
+        .download-link:hover {
+            background: var(--primary);
+            color: var(--white);
+            border-color: var(--primary);
         }
 
-        .footer-love {
-            color: #666;
-            font-size: 0.9rem;
-            margin-top: 1rem;
+        /* Steps Component */
+        .steps {
+            display: grid;
+            gap: 1.5rem;
+            margin-top: 2rem;
         }
 
-        /* Mobile-first responsive design */
-        @media (max-width: 480px) {
-            .container {
-                padding: 0 15px;
+        .step {
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+
+        .step-number {
+            flex-shrink: 0;
+            width: 2rem;
+            height: 2rem;
+            background: var(--primary);
+            color: var(--white);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        .step-content {
+            flex-grow: 1;
+        }
+
+        .step-title {
+            font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: 0.5rem;
+        }
+
+        .step-description {
+            color: var(--gray-600);
+            font-size: 0.875rem;
+        }
+
+        /* Tabs Component */
+        .tabs {
+            margin-top: 2rem;
+        }
+
+        .tab-buttons {
+            display: flex;
+            gap: 0.25rem;
+            background: var(--gray-100);
+            padding: 0.25rem;
+            border-radius: var(--radius);
+            margin-bottom: 1.5rem;
+        }
+
+        .tab-button {
+            background: transparent;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--radius);
+            font-weight: 500;
+            color: var(--gray-600);
+            cursor: pointer;
+            transition: var(--transition);
+            flex: 1;
+            text-align: center;
+        }
+
+        .tab-button.active {
+            background: var(--white);
+            color: var(--primary);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Status Indicators */
+        .status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: var(--radius);
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .status.success {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status.warning {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status.info {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--gray-700);
+            color: var(--gray-300);
+            padding: 3rem 0;
+            margin-top: 4rem;
+            text-align: center;
+        }
+
+        .footer-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .footer-text {
+            font-size: 0.875rem;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
             }
 
-            .hero {
+            .hero .subtitle {
+                font-size: 1.125rem;
+            }
+
+            .hero-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .btn {
+                width: 100%;
+                max-width: 300px;
+                justify-content: center;
+            }
+
+            .section {
                 padding: 3rem 0;
+                margin: 1rem 0;
+            }
+
+            .section-title {
+                font-size: 2rem;
+            }
+
+            .container {
+                padding: 0 1rem;
+            }
+
+            .card {
+                padding: 1.5rem;
+            }
+
+            .install-method {
+                padding: 1.5rem;
+            }
+
+            .download-links {
+                flex-direction: column;
+            }
+
+            .download-link {
+                text-align: center;
+            }
+
+            .tab-buttons {
+                flex-direction: column;
+            }
+
+            .tab-button {
+                text-align: left;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero {
+                padding: 4rem 0;
             }
 
             .hero h1 {
-                font-size: 1.8rem;
-            }
-
-            .hero p {
-                font-size: 1rem;
-                max-width: 100%;
+                font-size: 2rem;
             }
 
             .section {
                 padding: 2rem 0;
             }
 
-            .section h2 {
-                font-size: 1.6rem;
+            .section-title {
+                font-size: 1.75rem;
             }
 
-            .card-grid {
+            .card {
+                padding: 1.25rem;
+            }
+
+            .code-content {
+                padding: 1rem;
+            }
+
+            .footer-links {
+                flex-direction: column;
                 gap: 1rem;
             }
+        }
 
-            .card {
-                flex: 0 0 100%;
-                max-width: 100%;
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
             }
-
-            .download-card {
-                padding: 1.5rem;
-            }
-
-            .download-links {
-                flex-direction: column;
-                gap: 0.8rem;
-            }
-
-            .download-link {
-                width: 100%;
-                max-width: 180px;
-                padding: 0.7rem 1rem;
-            }
-
-            .code-container {
-                max-width: 100%;
-                margin: 1rem 0;
-            }
-
-            .code {
-                padding: 1rem;
-                font-size: 0.85rem;
-                padding-right: 3rem;
-            }
-
-            .copy-button {
-                padding: 0.3rem 0.6rem;
-                font-size: 0.8rem;
+            to {
+                opacity: 1;
+                transform: translateY(0);
             }
         }
 
-        /* Tablet landscape */
-        @media (min-width: 481px) and (max-width: 768px) {
-            .hero h1 {
-                font-size: 2.4rem;
-            }
-
-            .card {
-                flex: 0 0 calc(50% - 0.75rem);
-                max-width: calc(50% - 0.75rem);
-            }
-
-            .download-card {
-                flex: 0 0 100%;
-                max-width: 100%;
-            }
+        .animate-fade-in-up {
+            animation: fadeInUp 0.6s ease-out;
         }
 
-        /* High DPI displays */
-        @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-            .card {
-                border-width: 0.5px;
-            }
-
-            .section {
-                border-width: 0.5px;
-            }
-        }
-
-        /* Print styles */
-        @media print {
-            .copy-button,
-            .cta-button,
-            .download-link {
-                display: none;
-            }
-
-            .card {
-                break-inside: avoid;
-                box-shadow: none;
-                border: 1px solid #ccc;
-            }
-
-            .section {
-                break-inside: avoid;
-                margin: 1rem 0;
-                padding: 1rem 0;
-            }
-        }
+        /* Utilities */
+        .text-center { text-align: center; }
+        .text-left { text-align: left; }
+        .text-right { text-align: right; }
+        .mt-1 { margin-top: 0.25rem; }
+        .mt-2 { margin-top: 0.5rem; }
+        .mt-3 { margin-top: 0.75rem; }
+        .mt-4 { margin-top: 1rem; }
+        .mb-1 { margin-bottom: 0.25rem; }
+        .mb-2 { margin-bottom: 0.5rem; }
+        .mb-3 { margin-bottom: 0.75rem; }
+        .mb-4 { margin-bottom: 1rem; }
+        .hidden { display: none; }
+        .block { display: block; }
+        .flex { display: flex; }
+        .inline-flex { display: inline-flex; }
+        .items-center { align-items: center; }
+        .justify-center { justify-content: center; }
+        .gap-2 { gap: 0.5rem; }
+        .gap-4 { gap: 1rem; }
     </style>
 </head>
 <body>
-    <!-- Hero -->
+
+
+    <!-- Hero Section -->
     <section class="hero">
         <div class="container">
-            <h1>Sona – Transcribe Audio from Your CLI</h1>
-            <p>Turn audio and YouTube links into text, right in your terminal.</p>
-            <a href="#download" class="cta-button">Download Now</a>
+            <div class="hero-content animate-fade-in-up">
+                <h1>AI-Powered Audio Transcription</h1>
+                <p class="subtitle">
+                    Transform audio files and YouTube videos into text with cutting-edge AI. 
+                    Simple, fast, and secure transcription from your command line.
+                </p>
+                <div class="hero-buttons">
+                    <a href="#installation" class="btn btn-primary">
+                        Get Started
+                        <span>→</span>
+                    </a>
+                    <a href="#download" class="btn btn-secondary">
+                        Download
+                        <span>↓</span>
+                    </a>
+                </div>
+            </div>
         </div>
     </section>
 
     <!-- Features -->
-    <section class="section">
+    <section id="features" class="section">
         <div class="container">
-            <div class="section-header">
-                <h2>Features</h2>
-                <p>Everything you need for high-quality audio transcription</p>
+            <div class="grid grid-3">
+                <div class="card">
+                    <div class="card-icon">🎧</div>
+                    <h3 class="card-title">Universal Audio Support</h3>
+                    <div class="card-content">
+                        <p>Support for MP3, WAV, M4A, FLAC, and more. Automatic format conversion ensures compatibility with any audio file.</p>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-icon">🎬</div>
+                    <h3 class="card-title">YouTube Integration</h3>
+                    <div class="card-content">
+                        <p>Direct YouTube video transcription with automatic audio extraction. No manual downloads required.</p>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-icon">🤖</div>
+                    <h3 class="card-title">AssemblyAI Powered</h3>
+                    <div class="card-content">
+                        <p>Industry-leading speech recognition with multiple model options for optimal accuracy and speed.</p>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-icon">⚡</div>
+                    <h3 class="card-title">CLI Efficiency</h3>
+                    <div class="card-content">
+                        <p>Lightning-fast command-line interface perfect for automation, scripting, and batch processing.</p>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-icon">🔒</div>
+                    <h3 class="card-title">Secure by Design</h3>
+                    <div class="card-content">
+                        <p>Encrypted API key storage with AES-256-GCM. Your data stays local and private.</p>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-icon">🎯</div>
+                    <h3 class="card-title">Interactive Mode</h3>
+                    <div class="card-content">
+                        <p>Guided setup and usage with smart defaults. Perfect for both beginners and power users.</p>
+                    </div>
+                </div>
             </div>
-            <div class="card-grid">
-                <div class="card">
-                    <div class="card-content">
-                        <h3>Audio Files</h3>
-                        <p>Transcribe MP3, WAV, M4A, FLAC, and other audio formats with high accuracy</p>
+        </div>
+    </section>
+
+    <!-- Installation -->
+    <section id="installation" class="section">
+        <div class="container">
+            <div class="install-methods">
+                <!-- Homebrew Installation -->
+                <div class="install-method recommended">
+                    <div class="method-title">
+                        🍺 Homebrew Installation
+                    </div>
+                    <div class="method-description">
+                        Recommended for macOS and Linux users. Automatic updates and dependency management.
+                    </div>
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-title">Terminal</span>
+                            <button class="copy-btn" onclick="copyCode(this)" data-text="brew tap harsh-2002/homebrew-sona && brew install sona">Copy</button>
+                        </div>
+                        <div class="code-content">
+                            <code>brew tap harsh-2002/homebrew-sona && brew install sona</code>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <p class="text-left" style="color: var(--gray-600); font-size: 0.875rem;">
+                            <strong>Update later:</strong> <code style="background: var(--gray-100); padding: 0.25rem 0.5rem; border-radius: 0.25rem;">brew upgrade sona</code>
+                        </p>
                     </div>
                 </div>
-                <div class="card">
-                    <div class="card-content">
-                        <h3>YouTube Videos</h3>
-                        <p>Download and transcribe YouTube videos automatically using yt-dlp integration</p>
+
+                <!-- Quick Installation -->
+                <div class="install-method">
+                    <div class="method-title">
+                        ⚡ Quick Installation
+                    </div>
+                    <div class="method-description">
+                        One-line installer for all platforms. Automatically detects your system and installs dependencies.
+                    </div>
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-title">Terminal</span>
+                            <button class="copy-btn" onclick="copyCode(this)" data-text="curl -fsSL https://raw.githubusercontent.com/Harsh-2002/Sona/main/install.sh | sudo sh">Copy</button>
+                        </div>
+                        <div class="code-content">
+                            <code>curl -fsSL https://raw.githubusercontent.com/Harsh-2002/Sona/main/install.sh | sudo sh</code>
+                        </div>
                     </div>
                 </div>
-                <div class="card">
-                    <div class="card-content">
-                        <h3>AI Powered</h3>
-                        <p>Uses AssemblyAI's latest speech recognition models for best transcription quality</p>
+
+                <!-- Manual Installation -->
+                <div class="install-method">
+                    <div class="method-title">
+                        🔧 Manual Installation
                     </div>
-                </div>
-                <div class="card">
-                    <div class="card-content">
-                        <h3>Command Line</h3>
-                        <p>Fast and efficient CLI interface for batch processing and automation</p>
+                    <div class="method-description">
+                        Download and install manually for maximum control over the installation process.
                     </div>
-                </div>
-                <div class="card">
-                    <div class="card-content">
-                        <h3>Interactive Mode</h3>
-                        <p>Guided step-by-step experience with remembered settings and preferences</p>
-                    </div>
-                </div>
-                <div class="card">
-                    <div class="card-content">
-                        <h3>Secure Storage</h3>
-                        <p>API keys are encrypted and your audio files stay local for privacy</p>
+                    <div class="steps">
+                        <div class="step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <div class="step-title">Download Binary</div>
+                                <div class="step-description">Choose your platform from the download section below</div>
+                            </div>
+                        </div>
+                        <div class="step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <div class="step-title">Make Executable</div>
+                                <div class="step-description">
+                                    <div class="code-block mt-2">
+                                        <div class="code-header">
+                                            <span class="code-title">Terminal</span>
+                                            <button class="copy-btn" onclick="copyCode(this)" data-text="chmod +x sona-linux-amd64">Copy</button>
+                                        </div>
+                                        <div class="code-content">
+                                            <code>chmod +x sona-linux-amd64</code>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="step">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <div class="step-title">Install System-wide</div>
+                                <div class="step-description">
+                                    <div class="code-block mt-2">
+                                        <div class="code-header">
+                                            <span class="code-title">Terminal</span>
+                                            <button class="copy-btn" onclick="copyCode(this)" data-text="sudo mv sona-linux-amd64 /usr/local/bin/sona">Copy</button>
+                                        </div>
+                                        <div class="code-content">
+                                            <code>sudo mv sona-linux-amd64 /usr/local/bin/sona</code>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -821,30 +816,31 @@
     <!-- Download -->
     <section id="download" class="section">
         <div class="container">
-            <div class="section-header">
-                <h2>Download</h2>
-                <p>Get the latest version for your platform</p>
-            </div>
-            <div class="card-grid">
-                <div class="card download-card">
-                    <h4>🐧 Linux</h4>
-                    <p>AMD64 & ARM64 architectures</p>
+            <div class="download-grid">
+                <div class="download-card">
+                    <div class="download-icon">🐧</div>
+                    <div class="download-title">Linux</div>
+                    <div class="download-subtitle">AMD64 & ARM64 architectures</div>
                     <div class="download-links">
                         <a href="https://s3.srvr.site/artifact/sona/sona-linux-amd64" class="download-link">AMD64</a>
                         <a href="https://s3.srvr.site/artifact/sona/sona-linux-arm64" class="download-link">ARM64</a>
                     </div>
                 </div>
-                <div class="card download-card">
-                    <h4>🍎 macOS</h4>
-                    <p>Intel & Apple Silicon</p>
+                
+                <div class="download-card">
+                    <div class="download-icon">🍎</div>
+                    <div class="download-title">macOS</div>
+                    <div class="download-subtitle">Intel & Apple Silicon</div>
                     <div class="download-links">
                         <a href="https://s3.srvr.site/artifact/sona/sona-darwin-amd64" class="download-link">Intel</a>
                         <a href="https://s3.srvr.site/artifact/sona/sona-darwin-arm64" class="download-link">Apple Silicon</a>
                     </div>
                 </div>
-                <div class="card download-card">
-                    <h4>🪟 Windows</h4>
-                    <p>AMD64 & ARM64 architectures</p>
+                
+                <div class="download-card">
+                    <div class="download-icon">🪟</div>
+                    <div class="download-title">Windows</div>
+                    <div class="download-subtitle">AMD64 & ARM64 architectures</div>
                     <div class="download-links">
                         <a href="https://s3.srvr.site/artifact/sona/sona-windows-amd64.exe" class="download-link">AMD64</a>
                         <a href="https://s3.srvr.site/artifact/sona/sona-windows-arm64.exe" class="download-link">ARM64</a>
@@ -854,317 +850,406 @@
         </div>
     </section>
 
-    <!-- Installation -->
-    <section class="section">
-        <div class="container">
-            <div class="section-header">
-                <h2>Installation</h2>
-                <p>Quick and easy setup to get you started</p>
-            </div>
-            
-            <h3 style="margin: 2rem 0 1rem 0; color: #222; text-align: center;">Homebrew Installation (Recommended for macOS/Linux)</h3>
-            <div class="code-container">
-                <div class="code">
-                    <code>brew tap harsh-2002/homebrew-sona && brew install sona</code>
-                </div>
-                <button class="copy-button" onclick="copyCode(this)">Copy</button>
-            </div>
-            
-            <h3 style="margin: 2rem 0 1rem 0; color: #222; text-align: center;">Quick Setup (Alternative)</h3>
-            <div class="code-container">
-                <div class="code">
-                    <code>curl -fsSL https://raw.githubusercontent.com/Harsh-2002/Sona/main/install.sh | sudo sh</code>
-                </div>
-                <button class="copy-button" onclick="copyCode(this)">Copy</button>
-            </div>
-            
-            <h3 style="margin: 2rem 0 1rem 0; color: #222; text-align: center;">Manual Installation</h3>
-            <div class="steps">
-                <div class="step">
-                    <h4 data-number="1">Download binary</h4>
-                    <p>Choose your platform from the download section above</p>
-                </div>
-                <div class="step">
-                    <h4 data-number="2">Make executable</h4>
-                    <div class="code-container">
-                        <div class="code">
-                            <code>chmod +x sona-linux-amd64</code>
-                        </div>
-                        <button class="copy-button" onclick="copyCode(this)">Copy</button>
-                    </div>
-                </div>
-                <div class="step">
-                    <h4 data-number="3">Install system-wide</h4>
-                    <div class="code-container">
-                        <div class="code">
-                            <code>sudo mv sona-linux-amd64 /usr/local/bin/sona</code>
-                        </div>
-                        <button class="copy-button" onclick="copyCode(this)">Copy</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
     <!-- Usage -->
-    <section class="section usage-section">
+    <section id="usage" class="section">
         <div class="container">
-            <div class="section-header">
-                <h2>Usage</h2>
-                <p>How to use Sona for your transcription needs</p>
-            </div>
-            
-            <h3 style="margin: 2rem 0 1rem 0; color: #222; text-align: center;">Basic Commands</h3>
-            
-            <p>Set your API key:</p>
-            <div class="code-container">
-                <div class="code">
-                    <code>sona config set api_key "your_api_key_here"</code>
+            <div class="tabs">
+                <div class="tab-buttons">
+                    <button class="tab-button active" onclick="switchTab('setup')">Initial Setup</button>
+                    <button class="tab-button" onclick="switchTab('basic')">Basic Usage</button>
+                    <button class="tab-button" onclick="switchTab('advanced')">Advanced</button>
+                    <button class="tab-button" onclick="switchTab('troubleshoot')">Troubleshooting</button>
                 </div>
-                <button class="copy-button" onclick="copyCode(this)">Copy</button>
-            </div>
-            
-            <p>Check system status:</p>
-            <div class="code-container">
-                <div class="code">
-                    <code>sona status</code>
-                </div>
-                <button class="copy-button" onclick="copyCode(this)">Copy</button>
-            </div>
-            
-            <p>Install dependencies:</p>
-            <div class="code-container">
-                <div class="code">
-                    <code>sona install</code>
-                </div>
-                <button class="copy-button" onclick="copyCode(this)">Copy</button>
-            </div>
-            
-            <h3 style="margin: 2rem 0 1rem 0; color: #222; text-align: center;">Transcription Commands</h3>
-            
-            <p>Transcribe local audio file:</p>
-            <div class="code-container">
-                <div class="code">
-                    <code>sona transcribe audio.mp3</code>
-                </div>
-                <button class="copy-button" onclick="copyCode(this)">Copy</button>
-            </div>
-            
-            <p>Transcribe YouTube video:</p>
-            <div class="code-container">
-                <div class="code">
-                    <code>sona transcribe "https://youtube.com/watch?v=VIDEO_ID"</code>
-                </div>
-                <button class="copy-button" onclick="copyCode(this)">Copy</button>
-            </div>
-            
-            <p>Transcribe with custom output path:</p>
-            <div class="code-container">
-                <div class="code">
-                    <code>sona transcribe audio.mp3 --output /path/to/output</code>
-                </div>
-                <button class="copy-button" onclick="copyCode(this)">Copy</button>
-            </div>
-            
-            <p>Transcribe with specific speech model:</p>
-            <div class="code-container">
-                <div class="code">
-                    <code>sona transcribe audio.mp3 --model slam-1</code>
-                </div>
-                <button class="copy-button" onclick="copyCode(this)">Copy</button>
-            </div>
-            
-            <h3 style="margin: 2rem 0 1rem 0; color: #222; text-align: center;">Interactive Mode</h3>
-            
-            <p>Start guided interactive mode:</p>
-            <div class="code-container">
-                <div class="code">
-                    <code>sona</code>
-                </div>
-                <button class="copy-button" onclick="copyCode(this)">Copy</button>
-            </div>
-            
-            <p>Or explicitly start interactive mode:</p>
-            <div class="code-container">
-                <div class="code">
-                    <code>sona interactive</code>
-                </div>
-                <button class="copy-button" onclick="copyCode(this)">Copy</button>
-            </div>
-            
-            <h3 style="margin: 2rem 0 1rem 0; color: #222; text-align: center;">Configuration Commands</h3>
-            
-            <p>View current configuration:</p>
-            <div class="code-container">
-                <div class="code">
-                    <code>sona config show</code>
-                </div>
-                <button class="copy-button" onclick="copyCode(this)">Copy</button>
-            </div>
-            
-            <p>Set output directory:</p>
-            <div class="code-container">
-                <div class="code">
-                    <code>sona config set output.default_path "/path/to/transcripts"</code>
-                </div>
-                <button class="copy-button" onclick="copyCode(this)">Copy</button>
-            </div>
-            
-            <p>Get help for any command:</p>
-            <div class="code-container">
-                <div class="code">
-                    <code>sona --help</code>
-                </div>
-                <button class="copy-button" onclick="copyCode(this)">Copy</button>
-            </div>
-            
-            <h3 style="margin: 2rem 0 1rem 0; color: #222; text-align: center;">Updating Sona</h3>
-            
-            <p>If installed via Homebrew:</p>
-            <div class="code-container">
-                <div class="code">
-                    <code>brew upgrade sona</code>
-                </div>
-                <button class="copy-button" onclick="copyCode(this)">Copy</button>
-            </div>
-            
-            <p>If installed via installer script:</p>
-            <div class="code-container">
-                <div class="code">
-                    <code>sudo ./install.sh</code>
-                </div>
-                <button class="copy-button" onclick="copyCode(this)">Copy</button>
-            </div>
-        </div>
-    </section>
 
-    <!-- Troubleshooting -->
-    <section class="section">
-        <div class="container">
-            <div class="section-header">
-                <h2>Troubleshooting</h2>
-                <p>Common issues and how to solve them</p>
+                <!-- Setup Tab -->
+                <div id="setup" class="tab-content active">
+                    <div class="steps">
+                        <div class="step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <div class="step-title">Get AssemblyAI API Key</div>
+                                <div class="step-description">
+                                    Sign up at <a href="https://assemblyai.com" style="color: var(--primary);">assemblyai.com</a> to get your free API key
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <div class="step-title">Configure API Key</div>
+                                <div class="step-description">
+                                    <div class="code-block mt-2">
+                                        <div class="code-header">
+                                            <span class="code-title">Set your API key</span>
+                                            <button class="copy-btn" onclick="copyCode(this)" data-text='sona config set api_key "your_api_key_here"'>Copy</button>
+                                        </div>
+                                        <div class="code-content">
+                                            <code>sona config set api_key "your_api_key_here"</code>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="step">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <div class="step-title">Install Dependencies</div>
+                                <div class="step-description">
+                                    <div class="code-block mt-2">
+                                        <div class="code-header">
+                                            <span class="code-title">Install yt-dlp and FFmpeg</span>
+                                            <button class="copy-btn" onclick="copyCode(this)" data-text="sona install">Copy</button>
+                                        </div>
+                                        <div class="code-content">
+                                            <code>sona install</code>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="step">
+                            <div class="step-number">4</div>
+                            <div class="step-content">
+                                <div class="step-title">Verify Installation</div>
+                                <div class="step-description">
+                                    <div class="code-block mt-2">
+                                        <div class="code-header">
+                                            <span class="code-title">Check system status</span>
+                                            <button class="copy-btn" onclick="copyCode(this)" data-text="sona status">Copy</button>
+                                        </div>
+                                        <div class="code-content">
+                                            <code>sona status</code>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Basic Usage Tab -->
+                <div id="basic" class="tab-content">
+                    <div style="display: flex; flex-direction: column; gap: 2rem;">
+                        <div>
+                            <h4 style="color: var(--gray-800); margin-bottom: 1rem;">Local Audio Files</h4>
+                            <div class="code-block">
+                                <div class="code-header">
+                                    <span class="code-title">Transcribe audio file</span>
+                                    <button class="copy-btn" onclick="copyCode(this)" data-text="sona transcribe audio.mp3">Copy</button>
+                                </div>
+                                <div class="code-content">
+                                    <code>sona transcribe audio.mp3</code>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h4 style="color: var(--gray-800); margin-bottom: 1rem;">YouTube Videos</h4>
+                            <div class="code-block">
+                                <div class="code-header">
+                                    <span class="code-title">Transcribe YouTube video</span>
+                                    <button class="copy-btn" onclick="copyCode(this)" data-text='sona transcribe "https://youtube.com/watch?v=VIDEO_ID"'>Copy</button>
+                                </div>
+                                <div class="code-content">
+                                    <code>sona transcribe "https://youtube.com/watch?v=VIDEO_ID"</code>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h4 style="color: var(--gray-800); margin-bottom: 1rem;">Custom Output</h4>
+                            <div class="code-block">
+                                <div class="code-header">
+                                    <span class="code-title">Specify output path</span>
+                                    <button class="copy-btn" onclick="copyCode(this)" data-text="sona transcribe audio.mp3 --output transcript.txt">Copy</button>
+                                </div>
+                                <div class="code-content">
+                                    <code>sona transcribe audio.mp3 --output transcript.txt</code>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h4 style="color: var(--gray-800); margin-bottom: 1rem;">Interactive Mode</h4>
+                            <div class="code-block">
+                                <div class="code-header">
+                                    <span class="code-title">Guided experience</span>
+                                    <button class="copy-btn" onclick="copyCode(this)" data-text="sona interactive">Copy</button>
+                                </div>
+                                <div class="code-content">
+                                    <code>sona interactive</code>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Advanced Tab -->
+                <div id="advanced" class="tab-content">
+                    <h4 style="color: var(--gray-800); margin-bottom: 1rem;">AI Models</h4>
+                    <div class="grid grid-3 gap-4 mb-4">
+                        <div class="card">
+                            <div class="status success mb-2">Default</div>
+                            <h5 style="font-weight: 600; margin-bottom: 0.5rem;">slam-1</h5>
+                            <p style="font-size: 0.875rem; color: var(--gray-600);">Balanced accuracy and speed</p>
+                        </div>
+                        <div class="card">
+                            <div class="status info mb-2">Highest Quality</div>
+                            <h5 style="font-weight: 600; margin-bottom: 0.5rem;">best</h5>
+                            <p style="font-size: 0.875rem; color: var(--gray-600);">Maximum accuracy</p>
+                        </div>
+                        <div class="card">
+                            <div class="status warning mb-2">Fastest</div>
+                            <h5 style="font-weight: 600; margin-bottom: 0.5rem;">nano</h5>
+                            <p style="font-size: 0.875rem; color: var(--gray-600);">Quick processing</p>
+                        </div>
+                    </div>
+                    
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-title">Use specific model</span>
+                            <button class="copy-btn" onclick="copyCode(this)" data-text="sona transcribe audio.mp3 --model best">Copy</button>
+                        </div>
+                        <div class="code-content">
+                            <code>sona transcribe audio.mp3 --model best</code>
+                        </div>
+                    </div>
+                    
+                    <h4 style="color: var(--gray-800); margin: 2rem 0 1rem 0;">Configuration Management</h4>
+                    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                        <div>
+                            <div class="code-block">
+                                <div class="code-header">
+                                    <span class="code-title">View configuration</span>
+                                    <button class="copy-btn" onclick="copyCode(this)" data-text="sona config show">Copy</button>
+                                </div>
+                                <div class="code-content">
+                                    <code>sona config show</code>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="code-block">
+                                <div class="code-header">
+                                    <span class="code-title">Get help</span>
+                                    <button class="copy-btn" onclick="copyCode(this)" data-text="sona --help">Copy</button>
+                                </div>
+                                <div class="code-content">
+                                    <code>sona --help</code>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Troubleshooting Tab -->
+                <div id="troubleshoot" class="tab-content">
+                    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                        <div class="card">
+                            <h4 style="color: var(--gray-900); margin-bottom: 1rem;">🔑 API Key Issues</h4>
+                            <p style="margin-bottom: 1rem; color: var(--gray-600);">
+                                <strong>Problem:</strong> "API key not configured" or authentication errors
+                            </p>
+                            <div class="code-block">
+                                <div class="code-header">
+                                    <span class="code-title">Solution</span>
+                                    <button class="copy-btn" onclick="copyCode(this)" data-text='sona config set api_key "your_key"'>Copy</button>
+                                </div>
+                                <div class="code-content">
+                                    <code>sona config set api_key "your_key"</code>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card">
+                            <h4 style="color: var(--gray-900); margin-bottom: 1rem;">📥 Download Failures</h4>
+                            <p style="margin-bottom: 1rem; color: var(--gray-600);">
+                                <strong>Problem:</strong> YouTube download or dependency errors
+                            </p>
+                            <div class="code-block">
+                                <div class="code-header">
+                                    <span class="code-title">Solution</span>
+                                    <button class="copy-btn" onclick="copyCode(this)" data-text="sona install">Copy</button>
+                                </div>
+                                <div class="code-content">
+                                    <code>sona install</code>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card">
+                            <h4 style="color: var(--gray-900); margin-bottom: 1rem;">🔧 FFmpeg Issues</h4>
+                            <p style="margin-bottom: 1rem; color: var(--gray-600);">
+                                <strong>Problem:</strong> Audio conversion or processing errors
+                            </p>
+                            <div class="code-block">
+                                <div class="code-header">
+                                    <span class="code-title">Linux: Install xz-utils</span>
+                                    <button class="copy-btn" onclick="copyCode(this)" data-text="sudo apt-get install xz-utils">Copy</button>
+                                </div>
+                                <div class="code-content">
+                                    <code>sudo apt-get install xz-utils</code>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card">
+                            <h4 style="color: var(--gray-900); margin-bottom: 1rem;">📊 System Status</h4>
+                            <p style="margin-bottom: 1rem; color: var(--gray-600);">
+                                <strong>Check everything:</strong> Verify installation and dependencies
+                            </p>
+                            <div class="code-block">
+                                <div class="code-header">
+                                    <span class="code-title">Diagnostic command</span>
+                                    <button class="copy-btn" onclick="copyCode(this)" data-text="sona status">Copy</button>
+                                </div>
+                                <div class="code-content">
+                                    <code>sona status</code>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 2rem; padding: 1.5rem; background: var(--gray-50); border-radius: var(--radius-lg); border-left: 4px solid var(--primary);">
+                        <h4 style="color: var(--gray-900); margin-bottom: 1rem;">💡 Pro Tips</h4>
+                        <ul style="color: var(--gray-600); line-height: 1.8; list-style-type: disc; padding-left: 1.5rem;">
+                            <li style="margin-bottom: 0.75rem;">Always run <code style="background: var(--gray-200); padding: 0.25rem 0.5rem; border-radius: 0.25rem;">sona status</code> first to diagnose issues</li>
+                            <li style="margin-bottom: 0.75rem;">Check log files at <code style="background: var(--gray-200); padding: 0.25rem 0.5rem; border-radius: 0.25rem;">~/.sona/sona.log</code> for detailed error information</li>
+                            <li style="margin-bottom: 0.75rem;">Ensure you have sufficient disk space for large audio/video files</li>
+                            <li style="margin-bottom: 0.75rem;">Use the interactive mode <code style="background: var(--gray-200); padding: 0.25rem 0.5rem; border-radius: 0.25rem;">sona interactive</code> for guided troubleshooting</li>
+                        </ul>
+                    </div>
+                </div>
             </div>
-            <div class="card-grid">
-                <div class="card">
-                    <div class="card-content">
-                        <h3>API Key Issues</h3>
-                        <p><strong>Problem:</strong> "API key not configured" or "Authentication failed"</p>
-                        <p><strong>Solution:</strong> Set your API key using <code>sona config set api_key "your_key"</code> or check the key is valid in your AssemblyAI dashboard.</p>
+
+            <!-- Update Instructions -->
+            <div style="margin-top: 3rem; padding: 2rem; background: linear-gradient(135deg, var(--gray-50), var(--gray-100)); border-radius: var(--radius-lg); border: 1px solid var(--gray-200);">
+                <div style="display: flex; flex-direction: column; gap: 2rem;">
+                    <div>
+                        <h4 style="color: var(--gray-800); margin-bottom: 1rem;">Homebrew Users</h4>
+                        <div class="code-block">
+                            <div class="code-header">
+                                <span class="code-title">Update command</span>
+                                <button class="copy-btn" onclick="copyCode(this)" data-text="brew upgrade sona">Copy</button>
+                            </div>
+                            <div class="code-content">
+                                <code>brew upgrade sona</code>
+                            </div>
+                        </div>
                     </div>
-                </div>
-                <div class="card">
-                    <div class="card-content">
-                        <h3>YouTube Download Failures</h3>
-                        <p><strong>Problem:</strong> "yt-dlp not found" or download errors</p>
-                        <p><strong>Solution:</strong> Run <code>sona install</code> to install dependencies. If it fails, run <code>sona status</code> to check system status and ensure you have curl/wget available.</p>
+                    <div>
+                        <h4 style="color: var(--gray-800); margin-bottom: 1rem;">Installer Script Users</h4>
+                        <div class="code-block">
+                            <div class="code-header">
+                                <span class="code-title">Re-run installer</span>
+                                <button class="copy-btn" onclick="copyCode(this)" data-text="sudo ./install.sh">Copy</button>
+                            </div>
+                            <div class="code-content">
+                                <code>sudo ./install.sh</code>
+                            </div>
+                        </div>
                     </div>
-                </div>
-                <div class="card">
-                    <div class="card-content">
-                        <h3>Audio Conversion Errors</h3>
-                        <p><strong>Problem:</strong> "FFmpeg not found" or "transcoding failed"</p>
-                        <p><strong>Solution:</strong> Run <code>sona install</code> to install dependencies. Check <code>sona status</code> to verify FFmpeg availability. Ensure audio files are valid and not corrupted.</p>
-                    </div>
-                </div>
-                <div class="card">
-                    <div class="card-content">
-                        <h3>FFmpeg Extraction Errors</h3>
-                        <p><strong>Problem:</strong> "xz utility not found" or "failed to extract FFmpeg archive"</p>
-                        <p><strong>Solution:</strong> Install xz-utils: <code>sudo apt-get install xz-utils</code> (Ubuntu/Debian) or <code>sudo yum install xz</code> (CentOS/RHEL). This is required for extracting FFmpeg archives on some Linux distributions.</p>
-                    </div>
-                </div>
-                <div class="card">
-                    <div class="card-content">
-                        <h3>File Permission Issues</h3>
-                        <p><strong>Problem:</strong> "Permission denied" or "cannot create file"</p>
-                        <p><strong>Solution:</strong> Ensure output directory is writable. Run <code>chmod 755 /path/to/output</code> or use <code>sudo</code> if installing system-wide.</p>
-                    </div>
-                </div>
-                <div class="card">
-                    <div class="card-content">
-                        <h3>Network Timeouts</h3>
-                        <p><strong>Problem:</strong> "Request timeout" or "connection failed"</p>
-                        <p><strong>Solution:</strong> Check internet connection, firewall settings, and try again. AssemblyAI API might be experiencing high traffic.</p>
-                    </div>
-                </div>
-                <div class="card">
-                    <div class="card-content">
-                        <h3>Unsupported Audio Formats</h3>
-                        <p><strong>Problem:</strong> "Unsupported format" or "cannot process file"</p>
-                        <p><strong>Solution:</strong> Convert audio to common formats (MP3, WAV, M4A) first. The app will attempt automatic conversion using FFmpeg.</p>
-                    </div>
-                </div>
-                <div class="card">
-                    <div class="card-content">
-                        <h3>Configuration File Issues</h3>
-                        <p><strong>Problem:</strong> "Config file not found" or settings not saved</p>
-                        <p><strong>Solution:</strong> Run <code>sona config show</code> to verify configuration. Check permissions on <code>~/.sona/</code> directory.</p>
-                    </div>
-                </div>
-                <div class="card">
-                    <div class="card-content">
-                        <h3>Memory/Storage Issues</h3>
-                        <p><strong>Problem:</strong> "Out of memory" or "disk space full"</p>
-                        <p><strong>Solution:</strong> Ensure sufficient disk space for audio files and transcripts. Large video files may require significant temporary storage.</p>
-                    </div>
-                </div>
-            </div>
-            
-            <div style="margin-top: 3rem; text-align: center;">
-                <h3 style="color: #222; margin-bottom: 1rem;">Still Having Issues?</h3>
-                <p style="color: #666; margin-bottom: 1.5rem;">Run <code>sona status</code> to check your system configuration and dependency status. If dependencies are missing, run <code>sona install</code> to install them.</p>
-                <div class="code-container" style="max-width: 400px; margin: 0 auto;">
-                    <div class="code">
-                        <code>sona status</code>
-                    </div>
-                    <button class="copy-button" onclick="copyCode(this)">Copy</button>
-                </div>
-                <div class="code-container" style="max-width: 400px; margin: 1rem auto 0 auto;">
-                    <div class="code">
-                        <code>sona install</code>
-                    </div>
-                    <button class="copy-button" onclick="copyCode(this)">Copy</button>
                 </div>
             </div>
         </div>
     </section>
 
     <!-- Footer -->
-    <footer>
+    <footer class="footer">
         <div class="container">
-            <div class="footer-links">
-                <a href="https://github.com/Harsh-2002/Sona">GitHub</a>
+            <div class="footer-content">
+                <div class="footer-text">
+                    AI-powered audio transcription, simplified
+                </div>
+                <div class="footer-text">
+                    Made with ❤️
+                </div>
             </div>
-            <p>&copy; 2025 Sona - Audio Transcription Tool</p>
-            <p class="footer-love">Made with love ❤️</p>
         </div>
     </footer>
 
     <script>
+        // Copy to clipboard functionality
         function copyCode(button) {
-            const codeContainer = button.parentElement;
-            const codeElement = codeContainer.querySelector('.code code');
-            const textToCopy = codeElement.textContent;
-            
-            navigator.clipboard.writeText(textToCopy).then(function() {
-                // Visual feedback
+            const text = button.getAttribute('data-text');
+            navigator.clipboard.writeText(text).then(function() {
+                const originalText = button.textContent;
                 button.textContent = 'Copied!';
                 button.classList.add('copied');
                 
-                // Reset after 2 seconds
                 setTimeout(function() {
-                    button.textContent = 'Copy';
+                    button.textContent = originalText;
                     button.classList.remove('copied');
                 }, 2000);
             }).catch(function(err) {
                 console.error('Failed to copy: ', err);
-                button.textContent = 'Failed';
+                button.textContent = 'Error';
                 setTimeout(function() {
                     button.textContent = 'Copy';
                 }, 2000);
             });
         }
+
+        // Tab switching functionality
+        function switchTab(tabName) {
+            // Hide all tab contents
+            const allTabs = document.querySelectorAll('.tab-content');
+            allTabs.forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Remove active class from all buttons
+            const allButtons = document.querySelectorAll('.tab-button');
+            allButtons.forEach(button => {
+                button.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+            
+            // Add active class to clicked button
+            event.target.classList.add('active');
+        }
+
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Add scroll animation to sections
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        // Observe all sections for animation
+        document.querySelectorAll('.section').forEach(section => {
+            section.style.opacity = '0';
+            section.style.transform = 'translateY(20px)';
+            section.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            observer.observe(section);
+        });
     </script>
 </body>
 </html>
