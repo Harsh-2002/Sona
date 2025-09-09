@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Sona - AI-Powered Audio Transcription CLI Tool</title>
     <meta name="description" content="Sona is a powerful AI-powered audio transcription tool that converts audio files and YouTube videos to text using AssemblyAI. Simple, fast, and secure.">
     <meta name="keywords" content="audio transcription, speech to text, YouTube transcription, AI transcription, AssemblyAI, audio converter, CLI tool">
@@ -21,7 +21,13 @@
         * {
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
+            box-sizing: border-box !important;
+        }
+
+        html {
+            overflow-x: hidden;
+            width: 100%;
+            max-width: 100%;
         }
 
         body {
@@ -32,17 +38,27 @@
             font-size: 16px;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
+            max-width: 100vw;
+            overflow-x: hidden;
+            box-sizing: border-box;
+            width: 100%;
+            position: relative;
         }
 
         .container {
             max-width: 960px;
             margin: 0 auto;
             padding: 0 1.5rem;
+            box-sizing: border-box;
+            width: 100%;
+            overflow-x: hidden;
         }
 
         /* Sections */
         .section {
             padding: 5rem 0;
+            width: 100%;
+            overflow-x: hidden;
         }
 
         .section-title {
@@ -54,6 +70,22 @@
         
         #features {
             padding-top: 3rem;
+        }
+        
+        /* Mobile wrapper */
+        .mobile-safe-wrapper {
+            box-sizing: border-box;
+            width: 100%;
+            max-width: 100%;
+            overflow-x: hidden;
+            padding: 0;
+            margin: 0;
+        }
+        
+        /* Fix horizontal scrolling */
+        img, pre, code, table, div, section, article, header, footer, nav {
+            max-width: 100%;
+            box-sizing: border-box;
         }
 
         /* Hero Section */
@@ -136,8 +168,9 @@
         
         .download-grid {
             display: grid;
-            gap: 1.5rem;
-            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            width: 100%;
         }
 
         /* Card Components */
@@ -146,6 +179,10 @@
             padding: 2rem;
             background: var(--gray-light);
             transition: var(--transition);
+            width: 100%;
+            box-sizing: border-box;
+            margin: 0;
+            max-width: 100%;
         }
         
         #features .card:hover {
@@ -170,6 +207,9 @@
             border: 1px solid var(--gray-mid);
             border-radius: var(--radius);
             overflow: hidden;
+            width: 100%;
+            box-sizing: border-box;
+            max-width: 100%;
         }
 
         .code-header {
@@ -178,6 +218,9 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
+            box-sizing: border-box;
+            flex-wrap: wrap;
+            width: 100%;
         }
 
         .code-title {
@@ -189,6 +232,9 @@
         .code-content {
             padding: 1rem;
             overflow-x: auto;
+            box-sizing: border-box;
+            max-width: 100%;
+            width: 100%;
         }
 
         .code-content code {
@@ -196,6 +242,11 @@
             font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
             font-size: 0.9rem;
             background: none;
+            word-break: break-word;
+            white-space: pre-wrap;
+            display: block;
+            width: 100%;
+            max-width: 100%;
         }
 
         .copy-btn {
@@ -232,6 +283,8 @@
             gap: 1.5rem;
             grid-template-columns: 1fr;
             align-items: center;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .method-title {
@@ -267,12 +320,12 @@
 
         /* Download Section */
         .download-card {
-            padding: 2.5rem 2rem;
+            padding: 2rem 1.5rem;
             text-align: center;
             transition: var(--transition);
             background-color: var(--gray-light);
             border-radius: 16px;
-            min-width: 320px;
+            min-width: 0;
             max-width: 100%;
             width: 100%;
             margin: 0 auto;
@@ -376,6 +429,7 @@
 
         .tab-content.active {
             display: block;
+            text-align: center;
         }
 
         /* Steps Component */
@@ -414,10 +468,38 @@
             font-weight: 600;
             font-size: 1.1rem;
             margin-bottom: 0.25rem;
+            text-align: left;
         }
 
         .step-description {
             color: var(--gray-dark);
+            text-align: left;
+        }
+        
+        /* Custom styles for non-stepped tab content */
+        .tab-content .step-title:not(.step .step-title) {
+            text-align: center;
+            margin: 1.5rem auto 1rem;
+        }
+        
+        .tab-content .code-block {
+            margin: 0 auto 1.5rem;
+            max-width: 700px;
+        }
+        
+        .tab-centered-content {
+            max-width: 700px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        
+        .tab-centered-content .step-title {
+            margin: 2rem auto 1rem;
+            text-align: center;
+        }
+        
+        .tab-centered-content .step-title:first-child {
+            margin-top: 0;
         }
 
         /* Footer */
@@ -444,8 +526,8 @@
                 padding: 0 2rem;
             }
             .download-grid {
-                grid-template-columns: repeat(3, 1fr);
-                gap: 1rem;
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+                gap: 0.75rem;
             }
         }
 
@@ -509,6 +591,8 @@
         @media (max-width: 640px) {
             .container {
                 padding: 0 1rem;
+                max-width: 100%;
+                box-sizing: border-box;
             }
             .section {
                 padding: 3rem 0;
@@ -529,29 +613,73 @@
             }
             .card {
                 padding: 1.5rem;
+                margin: 0;
+                box-sizing: border-box;
+                max-width: 100%;
             }
             .download-card {
                 padding: 2rem 1.5rem;
+                margin: 0;
+                box-sizing: border-box;
+                max-width: 100%;
             }
             .code-block {
                 font-size: 0.85rem;
+                margin: 1rem 0;
+                box-sizing: border-box;
+                width: 100%;
+                max-width: 100%;
+            }
+            .code-content {
+                padding: 0.75rem;
+                font-size: 0.8rem;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            .code-content code {
+                font-size: 0.8rem;
+                word-break: break-all;
+                white-space: pre-wrap;
+            }
+            .code-header {
+                padding: 0.5rem 0.75rem;
             }
             .step {
                 flex-direction: column;
                 gap: 0.75rem;
                 text-align: center;
+                align-items: center;
             }
             .step-number {
                 align-self: center;
+            }
+            .step-title, .step-description {
+                text-align: center;
+            }
+            .tab-content .code-block {
+                margin: 0 auto 1.5rem;
+                max-width: 100%;
+                width: 100%;
             }
         }
 
         @media (max-width: 480px) {
             body {
                 font-size: 15px;
+                width: 100%;
+                position: relative;
+                overflow-x: hidden !important;
+            }
+            html, body {
+                max-width: 100%;
+                overflow-x: hidden !important;
             }
             .container {
-                padding: 0 0.75rem;
+                padding: 0 1rem !important; /* Force consistent padding */
+                max-width: 100%;
+                box-sizing: border-box;
+                overflow-x: hidden !important;
+                width: 100% !important;
             }
             .hero h1 {
                 font-size: 2rem;
@@ -568,9 +696,17 @@
             }
             .card {
                 padding: 1.25rem;
+                margin: 0;
+                box-sizing: border-box;
+                max-width: 100%;
+                width: 100%;
             }
             .download-card {
                 padding: 1.5rem 1rem;
+                margin: 0;
+                box-sizing: border-box;
+                max-width: 100%;
+                width: 100%;
             }
             .download-links {
                 flex-direction: column;
@@ -580,6 +716,7 @@
                 width: 100%;
                 text-align: center;
                 padding: 0.7rem 1.5rem;
+                box-sizing: border-box;
             }
             .tab-button {
                 padding: 0.6rem 1rem;
@@ -591,6 +728,30 @@
                 flex-direction: column;
                 gap: 0.5rem;
                 text-align: center;
+                padding: 0.75rem;
+            }
+            .code-block {
+                margin: 1rem 0;
+                box-sizing: border-box;
+                width: 100%;
+                max-width: 100%;
+            }
+            .code-content {
+                padding: 0.75rem;
+                font-size: 0.75rem;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                max-width: 100%;
+                width: 100%;
+                overflow-wrap: break-word;
+            }
+            .code-content code {
+                font-size: 0.75rem;
+                word-break: break-word;
+                white-space: pre-wrap;
+                max-width: 100%;
+                overflow-wrap: break-word;
+                display: block;
             }
             .copy-btn {
                 align-self: center;
@@ -599,12 +760,30 @@
             .install-or {
                 font-size: 1rem;
                 padding: 1rem 0;
+                margin: 0;
+                box-sizing: border-box;
+            }
+            .install-grid {
+                width: 100%;
+                max-width: 100%;
+                box-sizing: border-box;
+                overflow: hidden;
+            }
+            .mobile-safe-wrapper {
+                padding: 0;
+                margin: 0;
+                width: 100%;
+                max-width: 100%;
+                box-sizing: border-box;
+                overflow-x: hidden;
             }
         }
 
         @media (max-width: 360px) {
             .container {
                 padding: 0 0.5rem;
+                max-width: 100%;
+                box-sizing: border-box;
             }
             .hero h1 {
                 font-size: 1.75rem;
@@ -614,9 +793,15 @@
             }
             .card {
                 padding: 1rem;
+                margin: 0;
+                box-sizing: border-box;
+                max-width: 100%;
             }
             .download-card {
                 padding: 1.25rem 0.75rem;
+                margin: 0;
+                box-sizing: border-box;
+                max-width: 100%;
             }
             .btn {
                 padding: 0.6rem 1.25rem;
@@ -624,8 +809,26 @@
             }
         }
     </style>
+    <script>
+        // Fix any elements causing horizontal scrolling
+        document.addEventListener('DOMContentLoaded', function() {
+            var allElements = document.querySelectorAll('*');
+            var windowWidth = window.innerWidth;
+            
+            for (var i = 0; i < allElements.length; i++) {
+                var el = allElements[i];
+                if (el.offsetWidth > windowWidth) {
+                    el.style.maxWidth = '100%';
+                    el.style.overflowX = 'hidden';
+                    el.style.wordBreak = 'break-word';
+                    el.style.boxSizing = 'border-box';
+                }
+            }
+        });
+    </script>
 </head>
 <body>
+    <div class="mobile-safe-wrapper">
 
     <!-- Hero Section -->
     <section class="hero">
@@ -677,31 +880,33 @@
     <section id="installation" class="section">
         <div class="container">
             <h2 class="section-title">Installation</h2>
-            <div class="install-grid">
-                <div class="card">
-                    <h3 class="method-title">Homebrew (macOS/Linux)</h3>
-                    <p class="method-description">The recommended installation method for automatic updates.</p>
-                    <div class="code-block">
-                        <div class="code-header">
-                            <span class="code-title">Terminal</span>
-                            <button class="copy-btn" onclick="copyCode(this)" data-text="brew tap harsh-2002/homebrew-sona && brew install sona">Copy</button>
-                        </div>
-                        <div class="code-content">
-                            <code>brew tap harsh-2002/homebrew-sona && brew install sona</code>
+            <div class="mobile-safe-wrapper">
+                <div class="install-grid">
+                    <div class="card">
+                        <h3 class="method-title">Homebrew (macOS/Linux)</h3>
+                        <p class="method-description">The recommended installation method for automatic updates.</p>
+                        <div class="code-block">
+                            <div class="code-header">
+                                <span class="code-title">Terminal</span>
+                                <button class="copy-btn" onclick="copyCode(this)" data-text="brew tap harsh-2002/homebrew-sona && brew install sona">Copy</button>
+                            </div>
+                            <div class="code-content">
+                                <code>brew tap harsh-2002/homebrew-sona && brew install sona</code>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="install-or">OR</div>
-                <div class="card">
-                    <h3 class="method-title">Installer Script</h3>
-                    <p class="method-description">A one-line installer for any platform.</p>
-                    <div class="code-block">
-                        <div class="code-header">
-                            <span class="code-title">Terminal</span>
-                            <button class="copy-btn" onclick="copyCode(this)" data-text="curl -fsSL https://raw.githubusercontent.com/Harsh-2002/Sona/main/install.sh | sudo sh">Copy</button>
-                        </div>
-                        <div class="code-content">
-                            <code>curl -fsSL https://raw.githubusercontent.com/Harsh-2002/Sona/main/install.sh | sudo sh</code>
+                    <div class="install-or">OR</div>
+                    <div class="card">
+                        <h3 class="method-title">Installer Script</h3>
+                        <p class="method-description">A one-line installer for any platform.</p>
+                        <div class="code-block">
+                            <div class="code-header">
+                                <span class="code-title">Terminal</span>
+                                <button class="copy-btn" onclick="copyCode(this)" data-text="curl -fsSL https://raw.githubusercontent.com/Harsh-2002/Sona/main/install.sh | sudo sh">Copy</button>
+                            </div>
+                            <div class="code-content">
+                                <code>curl -fsSL https://raw.githubusercontent.com/Harsh-2002/Sona/main/install.sh | sudo sh</code>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -713,32 +918,34 @@
     <section id="download" class="section">
         <div class="container">
             <h2 class="section-title">Direct Downloads</h2>
-            <div class="download-grid">
-                <div class="download-card">
-                    <div class="download-icon">🐧</div>
-                    <h3 class="download-title">Linux</h3>
-                    <p class="download-subtitle">AMD64 & ARM64</p>
-                    <div class="download-links">
-                        <a href="https://s3.srvr.site/artifact/sona/sona-linux-amd64" class="download-link">AMD64</a>
-                        <a href="https://s3.srvr.site/artifact/sona/sona-linux-arm64" class="download-link">ARM64</a>
+            <div class="mobile-safe-wrapper" style="overflow-x: visible;">
+                <div class="download-grid">
+                    <div class="download-card">
+                        <div class="download-icon">🐧</div>
+                        <h3 class="download-title">Linux</h3>
+                        <p class="download-subtitle">AMD64 & ARM64</p>
+                        <div class="download-links">
+                            <a href="https://s3.srvr.site/artifact/sona/sona-linux-amd64" class="download-link">AMD64</a>
+                            <a href="https://s3.srvr.site/artifact/sona/sona-linux-arm64" class="download-link">ARM64</a>
+                        </div>
                     </div>
-                </div>
-                <div class="download-card">
-                    <div class="download-icon">🍎</div>
-                    <h3 class="download-title">macOS</h3>
-                    <p class="download-subtitle">Intel & Apple Silicon</p>
-                    <div class="download-links">
-                        <a href="https://s3.srvr.site/artifact/sona/sona-darwin-amd64" class="download-link">Intel</a>
-                        <a href="https://s3.srvr.site/artifact/sona/sona-darwin-arm64" class="download-link">Apple Silicon</a>
+                    <div class="download-card">
+                        <div class="download-icon">🍎</div>
+                        <h3 class="download-title">macOS</h3>
+                        <p class="download-subtitle">Intel & Apple Silicon</p>
+                        <div class="download-links">
+                            <a href="https://s3.srvr.site/artifact/sona/sona-darwin-amd64" class="download-link">Intel</a>
+                            <a href="https://s3.srvr.site/artifact/sona/sona-darwin-arm64" class="download-link">Apple Silicon</a>
+                        </div>
                     </div>
-                </div>
-                <div class="download-card">
-                    <div class="download-icon">🪟</div>
-                    <h3 class="download-title">Windows</h3>
-                    <p class="download-subtitle">AMD64 & ARM64</p>
-                    <div class="download-links">
-                        <a href="https://s3.srvr.site/artifact/sona/sona-windows-amd64.exe" class="download-link">AMD64</a>
-                        <a href="https://s3.srvr.site/artifact/sona/sona-windows-arm64.exe" class="download-link">ARM64</a>
+                    <div class="download-card">
+                        <div class="download-icon">🪟</div>
+                        <h3 class="download-title">Windows</h3>
+                        <p class="download-subtitle">AMD64 & ARM64</p>
+                        <div class="download-links">
+                            <a href="https://s3.srvr.site/artifact/sona/sona-windows-amd64.exe" class="download-link">AMD64</a>
+                            <a href="https://s3.srvr.site/artifact/sona/sona-windows-arm64.exe" class="download-link">ARM64</a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -749,19 +956,20 @@
     <section id="usage" class="section">
         <div class="container">
             <h2 class="section-title">How to Use</h2>
-            <div class="tabs">
-                <div class="tab-buttons">
-                    <button class="tab-button active" onclick="switchTab(event, 'setup')">Setup</button>
-                    <button class="tab-button" onclick="switchTab(event, 'basic')">Basic Usage</button>
-                    <button class="tab-button" onclick="switchTab(event, 'advanced')">Advanced</button>
-                </div>
+            <div class="mobile-safe-wrapper">
+                <div class="tabs">
+                    <div class="tab-buttons">
+                        <button class="tab-button active" onclick="switchTab(event, 'setup')">Setup</button>
+                        <button class="tab-button" onclick="switchTab(event, 'basic')">Basic Usage</button>
+                        <button class="tab-button" onclick="switchTab(event, 'advanced')">Advanced</button>
+                    </div>
 
-                <div id="setup" class="tab-content active">
-                    <div class="steps">
-                        <div class="step">
-                            <div class="step-number">1</div>
-                            <div class="step-content">
-                                <h4 class="step-title">Get API Key</h4>
+                    <div id="setup" class="tab-content active">
+                        <div class="steps">
+                            <div class="step">
+                                <div class="step-number">1</div>
+                                <div class="step-content">
+                                    <h4 class="step-title">Get API Key</h4>
                                 <p class="step-description">Sign up at <a href="https://assemblyai.com" target="_blank" rel="noopener noreferrer">assemblyai.com</a> to get your free API key.</p>
                             </div>
                         </div>
@@ -799,28 +1007,35 @@
                 </div>
 
                 <div id="basic" class="tab-content">
-                    <h4 class="step-title">Transcribe a Local File</h4>
-                    <div class="code-block">
-                        <div class="code-content"><code>sona transcribe audio.mp3</code></div>
-                    </div>
-                    <h4 class="step-title" style="margin-top: 2rem;">Transcribe a YouTube Video</h4>
-                    <div class="code-block">
-                        <div class="code-content"><code>sona transcribe "https://youtube.com/watch?v=VIDEO_ID"</code></div>
+                    <div class="tab-centered-content">
+                        <h4 class="step-title">Transcribe a Local File</h4>
+                        <div class="code-block">
+                            <div class="code-content"><code>sona transcribe audio.mp3</code></div>
+                        </div>
+                        
+                        <h4 class="step-title">Transcribe a YouTube Video</h4>
+                        <div class="code-block">
+                            <div class="code-content"><code>sona transcribe "https://youtube.com/watch?v=VIDEO_ID"</code></div>
+                        </div>
                     </div>
                 </div>
 
                 <div id="advanced" class="tab-content">
-                    <h4 class="step-title">Specify an Output Path</h4>
-                    <div class="code-block">
-                        <div class="code-content"><code>sona transcribe audio.mp3 --output transcript.txt</code></div>
-                    </div>
-                    <h4 class="step-title" style="margin-top: 2rem;">Use a Different AI Model</h4>
-                    <div class="code-block">
-                        <div class="code-content"><code>sona transcribe audio.mp3 --model best</code></div>
-                    </div>
-                     <h4 class="step-title" style="margin-top: 2rem;">Use Interactive Mode</h4>
-                    <div class="code-block">
-                        <div class="code-content"><code>sona interactive</code></div>
+                    <div class="tab-centered-content">
+                        <h4 class="step-title">Specify an Output Path</h4>
+                        <div class="code-block">
+                            <div class="code-content"><code>sona transcribe audio.mp3 --output transcript.txt</code></div>
+                        </div>
+                        
+                        <h4 class="step-title">Use a Different AI Model</h4>
+                        <div class="code-block">
+                            <div class="code-content"><code>sona transcribe audio.mp3 --model best</code></div>
+                        </div>
+                        
+                        <h4 class="step-title">Use Interactive Mode</h4>
+                        <div class="code-block">
+                            <div class="code-content"><code>sona interactive</code></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -831,6 +1046,7 @@
     <footer class="footer">
         <div class="container">
             <p>Made with ❤️</p>
+            <p>Low on sleep, high on ideas.</p>
             <p><a href="https://github.com/Harsh-2002/Sona" target="_blank" rel="noopener noreferrer">GitHub</a></p>
         </div>
     </footer>
@@ -868,5 +1084,6 @@
             });
         });
     </script>
+    </div><!-- close mobile-safe-wrapper -->
 </body>
 </html>
