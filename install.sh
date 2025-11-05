@@ -14,7 +14,7 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Configuration
-ENDPOINT="https://s3.srvr.site"
+ENDPOINT="https://s3.ctl.qzz.io"
 BUCKET="artifact"
 FOLDER="sona"
 INSTALL_DIR="/usr/local/bin"
@@ -93,7 +93,7 @@ is_installed() {
 # Function to download binary
 download_binary() {
     local binary_name=$1
-    local download_url="https://s3.srvr.site/artifact/sona/$binary_name"
+    local download_url="https://s3.ctl.qzz.io/artifact/sona/$binary_name"
     local temp_file="/tmp/sona-temp"
 
     print_status "$BLUE" "📥 Downloading $binary_name..."
