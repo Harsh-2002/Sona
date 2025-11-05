@@ -53,8 +53,6 @@ func DownloadAudio(url string, outputDir string) (string, error) {
 		"--audio-quality", "0",
 		"--output", outputPath,
 		"--no-playlist",
-		"--force-generic-extractor",
-		"--extractor-args", "youtube:player_client=web",
 	}
 
 	// Add ffmpeg location if found
@@ -83,7 +81,7 @@ func DownloadAudio(url string, outputDir string) (string, error) {
 			"--audio-quality", "0",
 			"--output", outputPath,
 			"--no-playlist",
-			"--extractor-args", "youtube:player_client=web",
+			"--extractor-args", "youtube:player_client=android,web",
 		}
 
 		// Add ffmpeg location to fallback as well
