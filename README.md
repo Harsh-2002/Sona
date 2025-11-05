@@ -66,16 +66,16 @@ The uninstaller will:
 If you prefer to download manually, here are the direct links for each platform:
 
 ### Linux
-- **AMD64**: [sona-linux-amd64](https://s3.srvr.site/artifact/sona/sona-linux-amd64)
-- **ARM64**: [sona-linux-arm64](https://s3.srvr.site/artifact/sona/sona-linux-arm64)
+- **AMD64**: [sona-linux-amd64](https://s3.ctl.qzz.io/artifact/sona/sona-linux-amd64)
+- **ARM64**: [sona-linux-arm64](https://s3.ctl.qzz.io/artifact/sona/sona-linux-arm64)
 
 ### macOS
-- **Intel**: [sona-darwin-amd64](https://s3.srvr.site/artifact/sona/sona-darwin-amd64)
-- **Apple Silicon**: [sona-darwin-arm64](https://s3.srvr.site/artifact/sona/sona-darwin-arm64)
+- **Intel**: [sona-darwin-amd64](https://s3.ctl.qzz.io/artifact/sona/sona-darwin-amd64)
+- **Apple Silicon**: [sona-darwin-arm64](https://s3.ctl.qzz.io/artifact/sona/sona-darwin-arm64)
 
 ### Windows
-- **AMD64**: [sona-windows-amd64.exe](https://s3.srvr.site/artifact/sona/sona-windows-amd64.exe)
-- **ARM64**: [sona-windows-arm64.exe](https://s3.srvr.site/artifact/sona/sona-windows-arm64.exe)
+- **AMD64**: [sona-windows-amd64.exe](https://s3.ctl.qzz.io/artifact/sona/sona-windows-amd64.exe)
+- **ARM64**: [sona-windows-arm64.exe](https://s3.ctl.qzz.io/artifact/sona/sona-windows-arm64.exe)
 
 ## ✨ What Sona Does
 
@@ -264,7 +264,7 @@ The installer automatically detects if you have an older version and updates it.
 Sona automatically builds and uploads new binaries on every push to `main` or `master` branches. The GitHub Actions workflow:
 
 - **Builds for all platforms** - Linux, macOS, Windows (AMD64/ARM64)
-- **Uploads to MinIO** - Public bucket at `https://s3.srvr.site/artifact/sona/`
+- **Uploads to MinIO** - Public bucket at `https://s3.ctl.qzz.io/artifact/sona/`
 - **No manual releases** - Everything happens automatically
 - **Always up-to-date** - Latest code = latest binaries
 
